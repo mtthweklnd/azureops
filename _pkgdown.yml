@@ -1,0 +1,93 @@
+url: https://example.github.io/azureops
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [intro, reference, news]
+    right: [github]
+
+reference:
+  - title: "Client & Authentication"
+    desc: "Configuration, credential retrieval, and request dispatching."
+    contents:
+      - az_client
+      - az_pat
+      - az_org
+      - az_project
+      - az_request
+      - az_perform
+
+  - title: "S7 Generics & Polymorphism"
+    desc: "Polymorphic operations across Azure DevOps domain entities."
+    contents:
+      - az_status
+      - az_browse
+      - az_logs
+      - az_cancel
+
+  - title: "Azure Boards"
+    desc: "Work items, WIQL queries, sprints, and capacity."
+    contents:
+      - az_work_item
+      - az_work_item_get
+      - az_work_items_get
+      - az_work_item_create
+      - az_work_item_update
+      - az_wiql_query
+      - az_iterations_list
+      - az_sprint_capacity_get
+
+  - title: "Azure Repos"
+    desc: "Git repositories, branches, commits, and pull requests."
+    contents:
+      - az_repo
+      - az_pull_request
+      - az_repos_list
+      - az_repo_get
+      - az_branches_list
+      - az_commits_list
+      - az_commit_get
+      - az_pull_requests_list
+      - az_pull_request_get
+      - az_pull_request_create
+      - az_pull_request_reviewers_get
+
+  - title: "Azure Pipelines"
+    desc: "Pipeline definitions, runs, logs, and triggers."
+    contents:
+      - az_pipeline
+      - az_pipeline_run
+      - az_pipelines_list
+      - az_pipeline_get
+      - az_pipeline_runs_list
+      - az_pipeline_run_get
+      - az_pipeline_run_trigger
+      - az_pipeline_run_logs_list
+      - az_pipeline_run_log_get
+
+  - title: "Azure Test Plans"
+    desc: "Test plans, test suites, test runs, and code coverage."
+    contents:
+      - az_test_plan
+      - az_test_run
+      - az_test_plans_list
+      - az_test_suites_list
+      - az_test_cases_list
+      - az_test_runs_list
+      - az_test_run_metrics_get
+      - az_code_coverage_get
+
+  - title: "Administration"
+    desc: "Projects, teams, security groups, entitlements, and webhooks."
+    contents:
+      - az_projects_list
+      - az_project_get
+      - az_project_create
+      - az_teams_list
+      - az_team_members_list
+      - az_security_groups_list
+      - az_user_entitlements_list
+      - az_webhooks_list
+      - az_webhook_create
