@@ -255,22 +255,46 @@ az_webhooks_list <- function(client = NULL) {
 
 #' Create a Webhook Subscription (Service Hook)
 #'
-#' @param publisher_id Publisher identifier (e.g. `"tfs"`).
 #' @param event_type Event type (e.g. `"workitem.created"`, `"git.pullrequest.created"`).
+#' @param url Destination webhook URL.
+#' @param consumer_inputs Named list of inputs (e.g. `list(url = "https://example.com/webhook")`).
+#' @param publisher_id Publisher identifier (e.g. `"tfs"`).
 #' @param consumer_id Consumer identifier (e.g. `"webHooks"`).
 #' @param consumer_action_id Consumer action (e.g. `"httpRequest"`).
-#' @param consumer_inputs Named list of inputs (e.g. `list(url = "https://example.com/webhook")`).
 #' @param publisher_inputs Named list of publisher filters (e.g. `list(projectId = "...")`).
 #' @param client Optional `az_client` S7 object.
 #' @return A list containing the created subscription details.
 #' @export
-az_webhook_create <- function(publisher_id = "tfs",
-                              event_type,
+az_webhook_create <- function(event_type,
+                              url = NULL,
+                              consumer_inputs = list(),
+                              publisher_id = "tfs",
                               consumer_id = "webHooks",
                               consumer_action_id = "httpRequest",
-                              consumer_inputs = list(),
                               publisher_inputs = list(),
                               client = NULL) {
+  if (missing(event_type) || is.null(event_type) || !nzchar(event_type)) {
+    cli::cli_abort("Argument {.arg event_type} is required.")
+  }
+
+  if (!is.null(url) && nzchar(url)) {
+    consumer_inputs$url <- url
+  }
+
+  if (is.null(consumer_inputs$url) || !nzchar(consumer_inputs$url)) {
+    cli::cli_abort(c(
+      "x" = "A destination URL is required for webhook creation.",
+      "i" = "Provide {.arg url} or pass {.code url} in {.arg consumer_inputs}."
+    ))
+  }
+
+  if (length(consumer_inputs) == 0) {
+    names(consumer_inputs) <- character(0)
+  }
+  if (length(publisher_inputs) == 0) {
+    names(publisher_inputs) <- character(0)
+  }
+
   body <- list(
     publisherId = publisher_id,
     eventType = event_type,

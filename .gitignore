@@ -1,0 +1,25 @@
+# History & User data
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj.user
+
+# Environment variables & secrets
+.Renviron
+.Renviron.*
+*.Renviron
+*.pem
+*.key
+*.pfx
+*.cer
+*.crt
+
+# Package build artifacts
+/*.tar.gz
+/*.Rcheck/
+
+# Scratch & local testing directories
+/.scratch/
+tests/testthat/fixtures/
+tests/testthat/recordings/

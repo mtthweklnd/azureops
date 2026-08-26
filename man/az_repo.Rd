@@ -12,6 +12,21 @@ az_repo(
   project = ""
 )
 }
+\arguments{
+\item{id}{Unique identifier (UUID string) of the repository (\code{character}).}
+
+\item{name}{Name of the repository (\code{character}).}
+
+\item{default_branch}{Default branch name without \verb{refs/heads/} prefix (e.g. \code{"main"}) (\code{character}).}
+
+\item{web_url}{Web browser URL for the repository in Azure Repos (\code{character}).}
+
+\item{project}{Name of the project containing the repository (\code{character}).}
+}
+\value{
+An S7 \code{az_repo} object.
+}
 \description{
-Represents a Git repository in Azure Repos.
+An S7 class representing a Git repository in Azure Repos.
+Corresponds to the Azure DevOps Git Repository REST API resource (\verb{/_apis/git/repositories}).
 }

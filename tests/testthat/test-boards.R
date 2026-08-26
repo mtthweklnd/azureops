@@ -14,24 +14,16 @@ test_that("az_work_item_get and az_work_items_get parse S7 objects", {
     )
   )
   
-  mock_handler <- function(req) {
+  with_mock_api(function(req) {
     if (grepl("_apis/wit/workitems/123", req$url)) {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(mock_item_payload, auto_unbox = TRUE))
-      )
+      mock_response(mock_item_payload)
     } else {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(list(value = list(mock_item_payload)), auto_unbox = TRUE))
-      )
+      mock_response(list(value = list(mock_item_payload)))
     }
-  }
-  
-  httr2::with_mocked_responses(mock_handler, {
+  }, {
     item <- az_work_item_get(123L, client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/wit/workitems/123?api-version=7.0&%24expand=all")
+    expect_equal(last_request()$method %||% "GET", "GET")
     expect_true(S7::S7_inherits(item, az_work_item))
     expect_equal(item@id, 123L)
     expect_equal(item@type, "Bug")
@@ -42,6 +34,8 @@ test_that("az_work_item_get and az_work_items_get parse S7 objects", {
     
     # Batch get as tibble
     df <- az_work_items_get(c(123L), as_data_frame = TRUE, client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/wit/workitems?api-version=7.0&ids=123&%24expand=all")
+    expect_equal(last_request()$method %||% "GET", "GET")
     expect_s3_class(df, "tbl_df")
     expect_equal(nrow(df), 1)
     expect_equal(df$id, 123L)
@@ -63,17 +57,9 @@ test_that("az_work_item_create constructs JSON patch and returns S7 object", {
     )
   )
   
-  mock_handler <- function(req) {
-    expect_equal(req$method, "POST")
-    expect_equal(req$headers$`Content-Type`, "application/json-patch+json")
-    httr2::response(
-      status_code = 200,
-      headers = list("content-type" = "application/json"),
-      body = charToRaw(jsonlite::toJSON(mock_created_payload, auto_unbox = TRUE))
-    )
-  }
-  
-  httr2::with_mocked_responses(mock_handler, {
+  with_mock_api(function(req) {
+    mock_response(mock_created_payload)
+  }, {
     item <- az_work_item_create(
       type = "User Story",
       title = "Implement OAuth",
@@ -83,6 +69,10 @@ test_that("az_work_item_create constructs JSON patch and returns S7 object", {
       project = "MyProj",
       client = client
     )
+    req <- last_request()
+    expect_equal(req$url, "https://dev.azure.com/testorg/_apis/wit/workitems/%24User%20Story?api-version=7.0")
+    expect_equal(req$method, "POST")
+    expect_equal(req$headers$`Content-Type`, "application/json-patch+json")
     expect_true(S7::S7_inherits(item, az_work_item))
     expect_equal(item@id, 456L)
     expect_equal(item@type, "User Story")
@@ -101,18 +91,14 @@ test_that("az_work_item_update sends PATCH request and handles empty fields", {
     fields = list(`System.State` = "Closed", `System.Title` = "Implement OAuth (Done)")
   )
   
-  mock_handler <- function(req) {
+  with_mock_api(function(req) {
+    mock_response(mock_updated_payload)
+  }, {
+    res <- az_work_item_update(456L, fields = list("System.State" = "Closed"), client = client)
+    req <- last_request()
+    expect_equal(req$url, "https://dev.azure.com/testorg/_apis/wit/workitems/456?api-version=7.0")
     expect_equal(req$method, "PATCH")
     expect_equal(req$headers$`Content-Type`, "application/json-patch+json")
-    httr2::response(
-      status_code = 200,
-      headers = list("content-type" = "application/json"),
-      body = charToRaw(jsonlite::toJSON(mock_updated_payload, auto_unbox = TRUE))
-    )
-  }
-  
-  httr2::with_mocked_responses(mock_handler, {
-    res <- az_work_item_update(456L, fields = list("System.State" = "Closed"), client = client)
     expect_equal(res@state, "Closed")
   })
 })
@@ -130,24 +116,19 @@ test_that("az_wiql_query executes and resolves items", {
     fields = list(`System.Title` = "Test Query Item", `System.State` = "New", `System.WorkItemType` = "Task")
   )
   
-  mock_handler <- function(req) {
+  with_mock_api(function(req) {
     if (grepl("_apis/wit/wiql", req$url)) {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(mock_wiql_payload, auto_unbox = TRUE))
-      )
+      mock_response(mock_wiql_payload)
     } else {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(list(value = list(mock_item_payload)), auto_unbox = TRUE))
-      )
+      mock_response(list(value = list(mock_item_payload)))
     }
-  }
-  
-  httr2::with_mocked_responses(mock_handler, {
+  }, {
     items <- az_wiql_query("SELECT [System.Id] FROM WorkItems", client = client)
+    reqs <- captured_requests()
+    expect_equal(length(reqs), 2)
+    expect_equal(reqs[[1]]$url, "https://dev.azure.com/testorg/_apis/wit/wiql?api-version=7.0")
+    expect_equal(reqs[[1]]$method, "POST")
+    expect_equal(reqs[[2]]$url, "https://dev.azure.com/testorg/_apis/wit/workitems?api-version=7.0&ids=123&%24expand=all")
     expect_equal(length(items), 1)
     expect_equal(items[[1]]@id, 123L)
     expect_equal(items[[1]]@title, "Test Query Item")
@@ -180,30 +161,22 @@ test_that("az_iterations_list and az_sprint_capacity_get return sprint analytics
     )
   )
   
-  mock_handler <- function(req) {
+  with_mock_api(function(req) {
     if (grepl("/capacities", req$url)) {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(mock_capacity_payload, auto_unbox = TRUE))
-      )
+      mock_response(mock_capacity_payload)
     } else {
-      httr2::response(
-        status_code = 200,
-        headers = list("content-type" = "application/json"),
-        body = charToRaw(jsonlite::toJSON(mock_iterations_payload, auto_unbox = TRUE))
-      )
+      mock_response(mock_iterations_payload)
     }
-  }
-  
-  httr2::with_mocked_responses(mock_handler, {
+  }, {
     iterations <- az_iterations_list(project = "Proj", team = "TeamA", client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/work/teamsettings/iterations?api-version=7.0")
     expect_s3_class(iterations, "tbl_df")
     expect_equal(nrow(iterations), 1)
     expect_equal(iterations$name, "Sprint 1")
     expect_equal(iterations$start_date, "2026-08-01T00:00:00Z")
     
     capacities <- az_sprint_capacity_get("sprint-1-guid", team = "TeamA", project = "Proj", client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/work/teamsettings/iterations/sprint-1-guid/capacities?api-version=7.0")
     expect_s3_class(capacities, "tbl_df")
     expect_equal(nrow(capacities), 1)
     expect_equal(capacities$display_name, "Alice Dev")

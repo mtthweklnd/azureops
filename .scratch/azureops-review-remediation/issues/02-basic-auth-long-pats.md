@@ -6,10 +6,10 @@ The header is assembled by hand from a base64 encoder that wraps its output at 7
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] An 84-character PAT produces an `Authorization` header containing no line breaks
-- [ ] A request built with an 84-character PAT reaches the server instead of failing at transport
-- [ ] The header is produced by httr2's Basic auth support rather than hand-assembled
-- [ ] Regression tests cover both a 52-character and an 84-character token
-- [ ] The now-unused base64 dependency is removed from the request path
+- [x] An 84-character PAT produces an `Authorization` header containing no line breaks
+- [x] A request built with an 84-character PAT reaches the server instead of failing at transport
+- [x] The header is produced by httr2's Basic auth support rather than hand-assembled
+- [x] Regression tests cover both a 52-character and an 84-character token
+- [x] The now-unused base64 dependency is removed from the request path

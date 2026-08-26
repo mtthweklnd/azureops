@@ -15,6 +15,27 @@ az_pull_request(
   repository = ""
 )
 }
+\arguments{
+\item{id}{Integer ID of the pull request (\code{integer}).}
+
+\item{title}{Title of the pull request (\code{character}).}
+
+\item{status}{Current status of the pull request (e.g. \code{"active"}, \code{"abandoned"}, \code{"completed"}) (\code{character}).}
+
+\item{source_branch}{Source branch name without \verb{refs/heads/} prefix (\code{character}).}
+
+\item{target_branch}{Target branch name without \verb{refs/heads/} prefix (\code{character}).}
+
+\item{created_by}{Display name of the user who created the pull request (\code{character}).}
+
+\item{web_url}{Web browser URL for the pull request (\code{character}).}
+
+\item{repository}{Name of the repository containing the pull request (\code{character}).}
+}
+\value{
+An S7 \code{az_pull_request} object.
+}
 \description{
-Represents a pull request in Azure Repos.
+An S7 class representing a pull request in Azure Repos.
+Corresponds to the Azure DevOps Pull Request REST API resource (\verb{/_apis/git/repositories/\{repositoryId\}/pullrequests}).
 }

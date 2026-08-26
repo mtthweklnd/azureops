@@ -12,6 +12,21 @@ az_pipeline(
   web_url = ""
 )
 }
+\arguments{
+\item{id}{Integer ID of the pipeline (\code{integer}).}
+
+\item{name}{Name of the pipeline (\code{character}).}
+
+\item{folder}{Folder path where the pipeline definition resides (\code{character}).}
+
+\item{revision}{Integer revision number of the pipeline definition (\code{integer}).}
+
+\item{web_url}{Web browser URL for the pipeline in Azure Pipelines (\code{character}).}
+}
+\value{
+An S7 \code{az_pipeline} object.
+}
 \description{
-Represents a build/release pipeline definition in Azure Pipelines.
+An S7 class representing a build or release pipeline definition in Azure Pipelines.
+Corresponds to the Azure DevOps Pipeline REST API resource (\verb{/_apis/pipelines}).
 }

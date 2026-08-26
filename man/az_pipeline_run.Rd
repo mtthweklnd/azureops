@@ -15,6 +15,27 @@ az_pipeline_run(
   logs_url = ""
 )
 }
+\arguments{
+\item{id}{Integer ID of the pipeline run (\code{integer}).}
+
+\item{pipeline_id}{Integer ID of the associated pipeline definition (\code{integer}).}
+
+\item{name}{Name or build number of the pipeline run (\code{character}).}
+
+\item{status}{Current execution state (e.g. \code{"completed"}, \code{"inProgress"}, \code{"canceling"}) (\code{character}).}
+
+\item{result}{Final execution result (e.g. \code{"succeeded"}, \code{"failed"}, \code{"canceled"}) (\code{character}).}
+
+\item{created_date}{ISO 8601 timestamp string when the run was queued/created (\code{character}).}
+
+\item{web_url}{Web browser URL for the pipeline run in Azure Pipelines (\code{character}).}
+
+\item{logs_url}{REST API URL to retrieve logs for the run (\code{character}).}
+}
+\value{
+An S7 \code{az_pipeline_run} object.
+}
 \description{
-Represents an execution run of an Azure Pipeline.
+An S7 class representing an execution run of an Azure Pipeline.
+Corresponds to the Azure DevOps Pipeline Run REST API resource (\verb{/_apis/pipelines/\{pipelineId\}/runs}).
 }

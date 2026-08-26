@@ -8,9 +8,9 @@ This endpoint is organisation-level and unaffected by the URL work, so it can pr
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Required arguments precede optional ones; the first positional argument is the event type
-- [ ] Calling without a destination URL raises a clear, actionable error before any request is made
-- [ ] Consumer and publisher inputs serialise as JSON objects, never as empty arrays
-- [ ] A test asserts the serialised request body shape, not just the parsed response
+- [x] Required arguments precede optional ones; the first positional argument is the event type
+- [x] Calling without a destination URL raises a clear, actionable error before any request is made
+- [x] Consumer and publisher inputs serialise as JSON objects, never as empty arrays
+- [x] A test asserts the serialised request body shape, not just the parsed response

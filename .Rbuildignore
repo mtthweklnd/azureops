@@ -1,0 +1,14 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.scratch$
+^\.scratch/.*$
+^\.github$
+^\.Renviron.*$
+^.*\.Renviron$
+^.*\.pem$
+^.*\.key$
+^.*\.pfx$
+^tests/testthat/fixtures$
+^tests/testthat/recordings$
+^azureops_.*\.tar\.gz$
+^azureops\.Rcheck$

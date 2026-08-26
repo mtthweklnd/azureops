@@ -16,6 +16,29 @@ az_work_item(
   fields = list()
 )
 }
+\arguments{
+\item{id}{Integer ID of the work item (\code{integer}).}
+
+\item{rev}{Integer revision number (\code{integer}).}
+
+\item{type}{Work item type string (e.g. \code{"Bug"}, \code{"Task"}, \code{"User Story"}, \code{"Epic"}) (\code{character}).}
+
+\item{title}{Title of the work item (\code{character}).}
+
+\item{state}{Current workflow state (e.g. \code{"Active"}, \code{"Closed"}, \code{"New"}) (\code{character}).}
+
+\item{assigned_to}{Display name or email of the assigned user (\code{character}).}
+
+\item{url}{REST API self-link URL for the work item (\code{character}).}
+
+\item{web_url}{Web browser URL to view/edit the work item in Azure Boards (\code{character}).}
+
+\item{fields}{Named list containing all raw fields returned by the Azure DevOps API (\code{list}).}
+}
+\value{
+An S7 \code{az_work_item} object.
+}
 \description{
-Represents a work item (Bug, Task, User Story, Epic, Feature) in Azure Boards.
+An S7 class representing a work item (Bug, Task, User Story, Epic, Feature) in Azure Boards.
+Corresponds to the Azure DevOps Work Item REST API resource (\verb{/_apis/wit/workitems}).
 }

@@ -71,3 +71,36 @@ test_that("az_perform handles 204 No Content gracefully", {
     expect_null(res)
   })
 })
+
+test_that("az_request handles 52-character and 84-character PATs without line breaks", {
+  pat_52 <- paste(rep("a", 52), collapse = "")
+  pat_84 <- paste(rep("b", 84), collapse = "")
+  
+  cli_52 <- az_client(organization = "testorg", pat = pat_52)
+  cli_84 <- az_client(organization = "testorg", pat = pat_84)
+  
+  req_52 <- az_request("_apis/projects", client = cli_52)
+  req_84 <- az_request("_apis/projects", client = cli_84)
+  
+  expect_s3_class(req_52, "httr2_request")
+  expect_s3_class(req_84, "httr2_request")
+  
+  dry_52 <- httr2::req_dry_run(req_52, quiet = TRUE)
+  dry_84 <- httr2::req_dry_run(req_84, quiet = TRUE)
+  expect_true(!is.null(dry_52$headers$authorization))
+  expect_true(!is.null(dry_84$headers$authorization))
+  
+  auth_val_52 <- openssl::base64_encode(paste0(":", pat_52))
+  auth_val_84 <- openssl::base64_encode(paste0(":", pat_84))
+  expect_false(grepl("[\r\n]", auth_val_52))
+  expect_false(grepl("[\r\n]", auth_val_84))
+  
+  with_mock_api(function(req) {
+    mock_response(list(count = 0, value = list()))
+  }, {
+    res <- az_perform(req_84)
+    expect_equal(res$count, 0)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/projects?api-version=7.0")
+  })
+})
+

@@ -5,25 +5,28 @@
 \title{Create a Webhook Subscription (Service Hook)}
 \usage{
 az_webhook_create(
-  publisher_id = "tfs",
   event_type,
+  url = NULL,
+  consumer_inputs = list(),
+  publisher_id = "tfs",
   consumer_id = "webHooks",
   consumer_action_id = "httpRequest",
-  consumer_inputs = list(),
   publisher_inputs = list(),
   client = NULL
 )
 }
 \arguments{
-\item{publisher_id}{Publisher identifier (e.g. \code{"tfs"}).}
-
 \item{event_type}{Event type (e.g. \code{"workitem.created"}, \code{"git.pullrequest.created"}).}
+
+\item{url}{Destination webhook URL.}
+
+\item{consumer_inputs}{Named list of inputs (e.g. \code{list(url = "https://example.com/webhook")}).}
+
+\item{publisher_id}{Publisher identifier (e.g. \code{"tfs"}).}
 
 \item{consumer_id}{Consumer identifier (e.g. \code{"webHooks"}).}
 
 \item{consumer_action_id}{Consumer action (e.g. \code{"httpRequest"}).}
-
-\item{consumer_inputs}{Named list of inputs (e.g. \code{list(url = "https://example.com/webhook")}).}
 
 \item{publisher_inputs}{Named list of publisher filters (e.g. \code{list(projectId = "...")}).}
 

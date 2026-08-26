@@ -13,6 +13,23 @@ az_test_run(
   web_url = ""
 )
 }
+\arguments{
+\item{id}{Integer ID of the test run (\code{integer}).}
+
+\item{name}{Name of the test run (\code{character}).}
+
+\item{state}{Current execution state (e.g. \code{"Completed"}, \code{"InProgress"}) (\code{character}).}
+
+\item{total_tests}{Integer total number of tests in the run (\code{integer}).}
+
+\item{pass_rate}{Proportional pass rate between \code{0.0} and \code{1.0} (\code{double}).}
+
+\item{web_url}{Web browser URL for the test run (\code{character}).}
+}
+\value{
+An S7 \code{az_test_run} object.
+}
 \description{
-Represents an executed test run in Azure Test Plans.
+An S7 class representing an executed test run in Azure Test Plans.
+Corresponds to the Azure DevOps Test Run REST API resource (\verb{/_apis/test/runs}).
 }

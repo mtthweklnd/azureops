@@ -65,8 +65,19 @@ az_client <- S7::new_class(
 
 #' Azure DevOps Work Item Class
 #'
-#' Represents a work item (Bug, Task, User Story, Epic, Feature) in Azure Boards.
+#' An S7 class representing a work item (Bug, Task, User Story, Epic, Feature) in Azure Boards.
+#' Corresponds to the Azure DevOps Work Item REST API resource (`/_apis/wit/workitems`).
 #'
+#' @param id Integer ID of the work item (`integer`).
+#' @param rev Integer revision number (`integer`).
+#' @param type Work item type string (e.g. `"Bug"`, `"Task"`, `"User Story"`, `"Epic"`) (`character`).
+#' @param title Title of the work item (`character`).
+#' @param state Current workflow state (e.g. `"Active"`, `"Closed"`, `"New"`) (`character`).
+#' @param assigned_to Display name or email of the assigned user (`character`).
+#' @param url REST API self-link URL for the work item (`character`).
+#' @param web_url Web browser URL to view/edit the work item in Azure Boards (`character`).
+#' @param fields Named list containing all raw fields returned by the Azure DevOps API (`list`).
+#' @return An S7 `az_work_item` object.
 #' @export
 az_work_item <- S7::new_class(
   name = "az_work_item",
@@ -95,8 +106,15 @@ az_work_item <- S7::new_class(
 
 #' Azure DevOps Repository Class
 #'
-#' Represents a Git repository in Azure Repos.
+#' An S7 class representing a Git repository in Azure Repos.
+#' Corresponds to the Azure DevOps Git Repository REST API resource (`/_apis/git/repositories`).
 #'
+#' @param id Unique identifier (UUID string) of the repository (`character`).
+#' @param name Name of the repository (`character`).
+#' @param default_branch Default branch name without `refs/heads/` prefix (e.g. `"main"`) (`character`).
+#' @param web_url Web browser URL for the repository in Azure Repos (`character`).
+#' @param project Name of the project containing the repository (`character`).
+#' @return An S7 `az_repo` object.
 #' @export
 az_repo <- S7::new_class(
   name = "az_repo",
@@ -119,8 +137,18 @@ az_repo <- S7::new_class(
 
 #' Azure DevOps Pull Request Class
 #'
-#' Represents a pull request in Azure Repos.
+#' An S7 class representing a pull request in Azure Repos.
+#' Corresponds to the Azure DevOps Pull Request REST API resource (`/_apis/git/repositories/{repositoryId}/pullrequests`).
 #'
+#' @param id Integer ID of the pull request (`integer`).
+#' @param title Title of the pull request (`character`).
+#' @param status Current status of the pull request (e.g. `"active"`, `"abandoned"`, `"completed"`) (`character`).
+#' @param source_branch Source branch name without `refs/heads/` prefix (`character`).
+#' @param target_branch Target branch name without `refs/heads/` prefix (`character`).
+#' @param created_by Display name of the user who created the pull request (`character`).
+#' @param web_url Web browser URL for the pull request (`character`).
+#' @param repository Name of the repository containing the pull request (`character`).
+#' @return An S7 `az_pull_request` object.
 #' @export
 az_pull_request <- S7::new_class(
   name = "az_pull_request",
@@ -148,8 +176,15 @@ az_pull_request <- S7::new_class(
 
 #' Azure DevOps Pipeline Definition Class
 #'
-#' Represents a build/release pipeline definition in Azure Pipelines.
+#' An S7 class representing a build or release pipeline definition in Azure Pipelines.
+#' Corresponds to the Azure DevOps Pipeline REST API resource (`/_apis/pipelines`).
 #'
+#' @param id Integer ID of the pipeline (`integer`).
+#' @param name Name of the pipeline (`character`).
+#' @param folder Folder path where the pipeline definition resides (`character`).
+#' @param revision Integer revision number of the pipeline definition (`integer`).
+#' @param web_url Web browser URL for the pipeline in Azure Pipelines (`character`).
+#' @return An S7 `az_pipeline` object.
 #' @export
 az_pipeline <- S7::new_class(
   name = "az_pipeline",
@@ -172,8 +207,18 @@ az_pipeline <- S7::new_class(
 
 #' Azure DevOps Pipeline Run Class
 #'
-#' Represents an execution run of an Azure Pipeline.
+#' An S7 class representing an execution run of an Azure Pipeline.
+#' Corresponds to the Azure DevOps Pipeline Run REST API resource (`/_apis/pipelines/{pipelineId}/runs`).
 #'
+#' @param id Integer ID of the pipeline run (`integer`).
+#' @param pipeline_id Integer ID of the associated pipeline definition (`integer`).
+#' @param name Name or build number of the pipeline run (`character`).
+#' @param status Current execution state (e.g. `"completed"`, `"inProgress"`, `"canceling"`) (`character`).
+#' @param result Final execution result (e.g. `"succeeded"`, `"failed"`, `"canceled"`) (`character`).
+#' @param created_date ISO 8601 timestamp string when the run was queued/created (`character`).
+#' @param web_url Web browser URL for the pipeline run in Azure Pipelines (`character`).
+#' @param logs_url REST API URL to retrieve logs for the run (`character`).
+#' @return An S7 `az_pipeline_run` object.
 #' @export
 az_pipeline_run <- S7::new_class(
   name = "az_pipeline_run",
@@ -199,8 +244,16 @@ az_pipeline_run <- S7::new_class(
 
 #' Azure DevOps Test Plan Class
 #'
-#' Represents a test plan in Azure Test Plans.
+#' An S7 class representing a test plan in Azure Test Plans.
+#' Corresponds to the Azure DevOps Test Plan REST API resource (`/_apis/testplan/plans`).
 #'
+#' @param id Integer ID of the test plan (`integer`).
+#' @param name Name of the test plan (`character`).
+#' @param state Current state of the test plan (e.g. `"Active"`, `"Inactive"`) (`character`).
+#' @param area_path Area path associated with the test plan (`character`).
+#' @param iteration Iteration or sprint path associated with the test plan (`character`).
+#' @param web_url Web browser URL for the test plan in Azure Test Plans (`character`).
+#' @return An S7 `az_test_plan` object.
 #' @export
 az_test_plan <- S7::new_class(
   name = "az_test_plan",
@@ -224,8 +277,16 @@ az_test_plan <- S7::new_class(
 
 #' Azure DevOps Test Run Class
 #'
-#' Represents an executed test run in Azure Test Plans.
+#' An S7 class representing an executed test run in Azure Test Plans.
+#' Corresponds to the Azure DevOps Test Run REST API resource (`/_apis/test/runs`).
 #'
+#' @param id Integer ID of the test run (`integer`).
+#' @param name Name of the test run (`character`).
+#' @param state Current execution state (e.g. `"Completed"`, `"InProgress"`) (`character`).
+#' @param total_tests Integer total number of tests in the run (`integer`).
+#' @param pass_rate Proportional pass rate between `0.0` and `1.0` (`double`).
+#' @param web_url Web browser URL for the test run (`character`).
+#' @return An S7 `az_test_run` object.
 #' @export
 az_test_run <- S7::new_class(
   name = "az_test_run",

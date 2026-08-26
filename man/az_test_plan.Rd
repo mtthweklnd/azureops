@@ -13,6 +13,23 @@ az_test_plan(
   web_url = ""
 )
 }
+\arguments{
+\item{id}{Integer ID of the test plan (\code{integer}).}
+
+\item{name}{Name of the test plan (\code{character}).}
+
+\item{state}{Current state of the test plan (e.g. \code{"Active"}, \code{"Inactive"}) (\code{character}).}
+
+\item{area_path}{Area path associated with the test plan (\code{character}).}
+
+\item{iteration}{Iteration or sprint path associated with the test plan (\code{character}).}
+
+\item{web_url}{Web browser URL for the test plan in Azure Test Plans (\code{character}).}
+}
+\value{
+An S7 \code{az_test_plan} object.
+}
 \description{
-Represents a test plan in Azure Test Plans.
+An S7 class representing a test plan in Azure Test Plans.
+Corresponds to the Azure DevOps Test Plan REST API resource (\verb{/_apis/testplan/plans}).
 }

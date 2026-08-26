@@ -90,10 +90,8 @@ az_request <- function(endpoint,
     }
   }
 
-  auth_header <- paste0("Basic ", trimws(jsonlite::base64_enc(paste0(":", cli_obj@pat))))
-  
   req <- httr2::request(url) |>
-    httr2::req_headers(Authorization = auth_header) |>
+    httr2::req_auth_basic(username = "", password = cli_obj@pat) |>
     httr2::req_user_agent("azureops R package (httr2)") |>
     httr2::req_error(body = az_error_body)
 

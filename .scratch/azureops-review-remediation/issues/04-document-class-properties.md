@@ -6,9 +6,9 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] All seven domain classes document every property, including its type and meaning
-- [ ] `R CMD check` reports no WARNING about undocumented arguments
-- [ ] Documentation is generated from source rather than hand-edited into the generated files
-- [ ] Each class's help page states which API resource it corresponds to
+- [x] All seven domain classes document every property, including its type and meaning
+- [x] `R CMD check` reports no WARNING about undocumented arguments
+- [x] Documentation is generated from source rather than hand-edited into the generated files
+- [x] Each class's help page states which API resource it corresponds to
