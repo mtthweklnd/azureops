@@ -1,5 +1,5 @@
-test_that("az_pipelines_list, az_pipeline_get, az_pipeline_runs_list, az_pipeline_run_get work", {
-  client <- az_client(organization = "testorg", pat = "testpat")
+test_that("az_pipelines_list, az_pipeline_get, az_pipeline_runs_list, az_pipeline_run_get work with project scoping", {
+  client <- az_client(organization = "testorg", pat = "testpat", project = "MyProject")
   
   mock_pipelines_payload <- list(
     value = list(
@@ -27,32 +27,32 @@ test_that("az_pipelines_list, az_pipeline_get, az_pipeline_runs_list, az_pipelin
     }
   }, {
     pipes <- az_pipelines_list(client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/pipelines?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines?api-version=7.0")
     expect_equal(last_request()$method %||% "GET", "GET")
     expect_equal(nrow(pipes), 1)
     expect_equal(pipes$id, 12L)
     expect_equal(pipes$name, "Deploy WebApp")
     
     pipe <- az_pipeline_get(12L, client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/pipelines/12?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12?api-version=7.0")
     expect_true(S7::S7_inherits(pipe, az_pipeline))
     expect_equal(pipe@id, 12L)
     expect_equal(pipe@folder, "\\Production")
 
     runs <- az_pipeline_runs_list(12L, client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/pipelines/12/runs?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12/runs?api-version=7.0")
     expect_equal(nrow(runs), 1)
     expect_equal(runs$id, 555L)
 
     run_obj <- az_pipeline_run_get(12L, 555L, client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/pipelines/12/runs/555?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12/runs/555?api-version=7.0")
     expect_true(S7::S7_inherits(run_obj, az_pipeline_run))
     expect_equal(run_obj@id, 555L)
   })
 })
 
-test_that("az_pipeline_run_trigger, az_pipeline_run_logs_list, and az_logs work", {
-  client <- az_client(organization = "testorg", pat = "testpat")
+test_that("az_pipeline_run_trigger, az_pipeline_run_logs_list, and az_logs work with project scoping", {
+  client <- az_client(organization = "testorg", pat = "testpat", project = "MyProject")
   
   mock_run_payload <- list(
     id = 555L,
@@ -89,7 +89,7 @@ test_that("az_pipeline_run_trigger, az_pipeline_run_logs_list, and az_logs work"
       client = client
     )
     req <- last_request()
-    expect_equal(req$url, "https://dev.azure.com/testorg/_apis/pipelines/12/runs?api-version=7.0")
+    expect_equal(req$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12/runs?api-version=7.0")
     expect_equal(req$method, "POST")
     expect_equal(req$body$data$resources$repositories$self$refName, "refs/heads/feature/test")
     expect_equal(req$body$data$templateParameters$env, "prod")
@@ -102,8 +102,19 @@ test_that("az_pipeline_run_trigger, az_pipeline_run_logs_list, and az_logs work"
     log_text <- az_logs(run, client = client)
     reqs <- captured_requests()
     # Should have called logs list and then log get
-    expect_equal(reqs[[length(reqs) - 1]]$url, "https://dev.azure.com/testorg/_apis/pipelines/12/runs/555/logs?api-version=7.0")
-    expect_equal(reqs[[length(reqs)]]$url, "https://dev.azure.com/testorg/_apis/pipelines/12/runs/555/logs/1?api-version=7.0")
+    expect_equal(reqs[[length(reqs) - 1]]$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12/runs/555/logs?api-version=7.0")
+    expect_equal(reqs[[length(reqs)]]$url, "https://dev.azure.com/testorg/MyProject/_apis/pipelines/12/runs/555/logs/1?api-version=7.0")
     expect_match(log_text, "Step 1: Build succeeded")
   })
+})
+
+test_that("pipeline parsers fail loudly on unexpected responses without ID", {
+  expect_error(
+    .parse_pipeline(list(name = "No ID")),
+    "pipeline definition has no valid ID"
+  )
+  expect_error(
+    .parse_pipeline_run(list(name = "No Run ID")),
+    "pipeline run has no valid ID"
+  )
 })

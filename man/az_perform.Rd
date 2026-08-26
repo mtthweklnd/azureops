@@ -12,7 +12,7 @@ az_perform(req, simplifyVector = FALSE)
 \item{simplifyVector}{Logical; whether to simplify JSON to vectors/data frames.}
 }
 \value{
-Parsed JSON object (list or data.frame).
+Parsed JSON object (list or data.frame), or \code{NULL} if empty.
 }
 \description{
 Executes an \code{httr2} request and parses the JSON response body.

@@ -77,9 +77,9 @@ importFrom(httr2,
   req_url_query,
   req_user_agent,
   request,
-  resp_body_json,
   resp_body_string,
   resp_content_type,
+  resp_has_body,
   resp_status
 )
 importFrom(jsonlite,fromJSON)
@@ -98,4 +98,7 @@ importFrom(rlang,
   arg_match
 )
 importFrom(tibble,tibble)
-importFrom(utils,browseURL)
+importFrom(utils,
+  URLencode,
+  browseURL
+)

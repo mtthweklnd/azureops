@@ -9,8 +9,15 @@ NULL
 #' Parse Pipeline JSON into S7 az_pipeline
 #' @noRd
 .parse_pipeline <- function(item) {
+  pipeline_id <- purrr::pluck(item, "id")
+  if (is.null(pipeline_id) || is.na(pipeline_id) || as.integer(pipeline_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: pipeline definition has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   az_pipeline(
-    id = as.integer(purrr::pluck(item, "id", .default = 0L)),
+    id = as.integer(pipeline_id),
     name = as.character(purrr::pluck(item, "name", .default = "")),
     folder = as.character(purrr::pluck(item, "folder", .default = "\\")),
     revision = as.integer(purrr::pluck(item, "revision", .default = 1L)),
@@ -21,8 +28,15 @@ NULL
 #' Parse Pipeline Run JSON into S7 az_pipeline_run
 #' @noRd
 .parse_pipeline_run <- function(item) {
+  run_id <- purrr::pluck(item, "id")
+  if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: pipeline run has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   az_pipeline_run(
-    id = as.integer(purrr::pluck(item, "id", .default = 0L)),
+    id = as.integer(run_id),
     pipeline_id = as.integer(purrr::pluck(item, "pipeline", "id", .default = 0L)),
     name = as.character(purrr::pluck(item, "name", .default = "")),
     status = as.character(purrr::pluck(item, "state", .default = purrr::pluck(item, "status", .default = "inProgress"))),

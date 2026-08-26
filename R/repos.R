@@ -2,14 +2,23 @@
 #' @importFrom purrr pluck map_chr map_int map_lgl
 #' @importFrom rlang arg_match
 #' @importFrom tibble tibble
+#' @importFrom cli cli_abort
 #' @importFrom httr2 req_method req_body_json
+#' @importFrom utils URLencode
 NULL
 
 #' Parse Repository JSON into S7 az_repo
 #' @noRd
 .parse_repo <- function(item) {
+  repo_id <- purrr::pluck(item, "id")
+  if (is.null(repo_id) || !nzchar(as.character(repo_id))) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: repository has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   az_repo(
-    id = as.character(purrr::pluck(item, "id", .default = "")),
+    id = as.character(repo_id),
     name = as.character(purrr::pluck(item, "name", .default = "")),
     default_branch = as.character(sub("^refs/heads/", "", purrr::pluck(item, "defaultBranch", .default = "main"))),
     web_url = as.character(purrr::pluck(item, "webUrl", .default = "")),
@@ -20,8 +29,15 @@ NULL
 #' Parse Pull Request JSON into S7 az_pull_request
 #' @noRd
 .parse_pull_request <- function(item) {
+  pr_id <- purrr::pluck(item, "pullRequestId")
+  if (is.null(pr_id) || is.na(pr_id) || as.integer(pr_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: pull request has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   az_pull_request(
-    id = as.integer(purrr::pluck(item, "pullRequestId", .default = 0L)),
+    id = as.integer(pr_id),
     title = as.character(purrr::pluck(item, "title", .default = "")),
     status = as.character(purrr::pluck(item, "status", .default = "")),
     source_branch = as.character(sub("^refs/heads/", "", purrr::pluck(item, "sourceRefName", .default = ""))),
@@ -74,7 +90,8 @@ az_repos_list <- function(project = NULL, client = NULL) {
 #' @return An S7 `az_repo` object.
 #' @export
 az_repo_get <- function(repository_id, project = NULL, client = NULL) {
-  endpoint <- sprintf("_apis/git/repositories/%s", repository_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s", repo_enc)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
   .parse_repo(res)
@@ -88,7 +105,8 @@ az_repo_get <- function(repository_id, project = NULL, client = NULL) {
 #' @return A `tibble` of branch names and commit object IDs.
 #' @export
 az_branches_list <- function(repository_id, project = NULL, client = NULL) {
-  endpoint <- sprintf("_apis/git/repositories/%s/refs", repository_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s/refs", repo_enc)
   req <- az_request(endpoint, client = client, project = project, query = list(filter = "heads/"))
   res <- az_perform(req)
   
@@ -120,7 +138,8 @@ az_commits_list <- function(repository_id,
                             top = 50,
                             project = NULL,
                             client = NULL) {
-  endpoint <- sprintf("_apis/git/repositories/%s/commits", repository_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s/commits", repo_enc)
   query <- list(`$top` = top)
   if (!is.null(branch) && nzchar(branch)) {
     query$`searchCriteria.itemVersion.version` = branch
@@ -156,7 +175,9 @@ az_commits_list <- function(repository_id,
 #' @return A list representing commit details.
 #' @export
 az_commit_get <- function(repository_id, commit_id, project = NULL, client = NULL) {
-  endpoint <- sprintf("_apis/git/repositories/%s/commits/%s", repository_id, commit_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  com_enc <- utils::URLencode(as.character(commit_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s/commits/%s", repo_enc, com_enc)
   req <- az_request(endpoint, client = client, project = project)
   az_perform(req)
 }
@@ -178,7 +199,8 @@ az_pull_requests_list <- function(repository_id = NULL,
   status <- rlang::arg_match(status)
   
   endpoint <- if (!is.null(repository_id) && nzchar(repository_id)) {
-    sprintf("_apis/git/repositories/%s/pullrequests", repository_id)
+    repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+    sprintf("_apis/git/repositories/%s/pullrequests", repo_enc)
   } else {
     "_apis/git/pullrequests"
   }
@@ -226,7 +248,8 @@ az_pull_request_get <- function(pull_request_id,
                                 project = NULL,
                                 client = NULL) {
   endpoint <- if (!is.null(repository_id) && nzchar(repository_id)) {
-    sprintf("_apis/git/repositories/%s/pullrequests/%s", repository_id, pull_request_id)
+    repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+    sprintf("_apis/git/repositories/%s/pullrequests/%s", repo_enc, pull_request_id)
   } else {
     sprintf("_apis/git/pullrequests/%s", pull_request_id)
   }
@@ -267,7 +290,8 @@ az_pull_request_create <- function(repository_id,
     isDraft = is_draft
   )
   
-  endpoint <- sprintf("_apis/git/repositories/%s/pullrequests", repository_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s/pullrequests", repo_enc)
   
   req <- az_request(endpoint, client = client, project = project) |>
     httr2::req_method("POST") |>
@@ -289,7 +313,8 @@ az_pull_request_reviewers_get <- function(repository_id,
                                           pull_request_id,
                                           project = NULL,
                                           client = NULL) {
-  endpoint <- sprintf("_apis/git/repositories/%s/pullrequests/%s/reviewers", repository_id, pull_request_id)
+  repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/git/repositories/%s/pullrequests/%s/reviewers", repo_enc, pull_request_id)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
   

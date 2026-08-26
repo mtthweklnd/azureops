@@ -3,6 +3,8 @@
 #' @importFrom rlang arg_match
 #' @importFrom tibble tibble
 #' @importFrom httr2 req_method req_body_json
+#' @importFrom cli cli_abort
+#' @importFrom utils URLencode
 NULL
 
 #' List Azure DevOps Projects
@@ -49,7 +51,8 @@ az_projects_list <- function(client = NULL) {
 #' @return A list representing the project details.
 #' @export
 az_project_get <- function(project_id, client = NULL) {
-  endpoint <- sprintf("_apis/projects/%s", project_id)
+  proj_enc <- utils::URLencode(as.character(project_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/projects/%s", proj_enc)
   req <- az_request(endpoint, client = client)
   az_perform(req)
 }
@@ -102,7 +105,8 @@ az_project_create <- function(name,
 #' @export
 az_teams_list <- function(project = NULL, client = NULL) {
   endpoint <- if (!is.null(project) && nzchar(project)) {
-    sprintf("_apis/projects/%s/teams", project)
+    proj_enc <- utils::URLencode(as.character(project), reserved = TRUE)
+    sprintf("_apis/projects/%s/teams", proj_enc)
   } else {
     "_apis/teams"
   }
@@ -136,7 +140,9 @@ az_teams_list <- function(project = NULL, client = NULL) {
 #' @return A `tibble` of team members.
 #' @export
 az_team_members_list <- function(project, team_id, client = NULL) {
-  endpoint <- sprintf("_apis/projects/%s/teams/%s/members", project, team_id)
+  proj_enc <- utils::URLencode(as.character(project), reserved = TRUE)
+  team_enc <- utils::URLencode(as.character(team_id), reserved = TRUE)
+  endpoint <- sprintf("_apis/projects/%s/teams/%s/members", proj_enc, team_enc)
   req <- az_request(endpoint, client = client)
   res <- az_perform(req)
   

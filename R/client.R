@@ -1,10 +1,11 @@
 #' @include classes.R auth.R
-#' @importFrom httr2 request req_auth_basic req_user_agent req_error req_url_query req_perform req_method req_headers req_body_json resp_status resp_body_string resp_content_type resp_body_json
+#' @importFrom httr2 request req_auth_basic req_user_agent req_error req_url_query req_perform req_method req_headers req_body_json resp_status resp_body_string resp_content_type resp_has_body
 #' @importFrom jsonlite fromJSON
 #' @importFrom purrr pluck
 #' @importFrom rlang %||%
 #' @importFrom cli cli_abort
 #' @importFrom S7 S7_inherits
+#' @importFrom utils URLencode
 NULL
 
 #' Resolve Client Object or Credentials
@@ -46,7 +47,11 @@ az_error_body <- function(resp) {
       }
     }, error = function(e) NULL)
   }
-  httr2::resp_body_string(resp)
+  if (httr2::resp_has_body(resp)) {
+    httr2::resp_body_string(resp)
+  } else {
+    NULL
+  }
 }
 
 #' Construct an Azure DevOps HTTP Request
@@ -79,14 +84,35 @@ az_request <- function(endpoint,
   } else {
     # Remove leading slash
     clean_endpoint <- sub("^/", "", endpoint)
+    org_enc <- utils::URLencode(as.character(cli_obj@organization), reserved = TRUE)
     
     # Check if project should be inserted into path
-    proj <- project %||% (if (nzchar(cli_obj@project)) cli_obj@project else NULL)
-    
-    if (!is.null(proj) && nzchar(proj) && !grepl("^_apis", clean_endpoint) && !grepl(paste0("^", proj), clean_endpoint)) {
-      url <- sprintf("%s/%s/%s/%s", host, cli_obj@organization, proj, clean_endpoint)
+    proj <- if (!is.null(project) && nzchar(project)) {
+      project
+    } else if (nzchar(cli_obj@project)) {
+      cli_obj@project
     } else {
-      url <- sprintf("%s/%s/%s", host, cli_obj@organization, clean_endpoint)
+      NULL
+    }
+    
+    # Endpoints that are genuinely organisation-level must remain unprefixed
+    is_org_level <- grepl("^_apis/(projects|teams|hooks|graph|userentitlements)", clean_endpoint)
+    
+    if (!is.null(proj) && nzchar(proj) && !is_org_level) {
+      proj_enc <- utils::URLencode(as.character(proj), reserved = TRUE)
+      
+      # Literal comparison to check if project is already prefixed
+      if (startsWith(clean_endpoint, paste0(proj, "/"))) {
+        remainder <- substring(clean_endpoint, nchar(proj) + 2)
+        url <- sprintf("%s/%s/%s/%s", host, org_enc, proj_enc, remainder)
+      } else if (startsWith(clean_endpoint, paste0(proj_enc, "/"))) {
+        remainder <- substring(clean_endpoint, nchar(proj_enc) + 2)
+        url <- sprintf("%s/%s/%s/%s", host, org_enc, proj_enc, remainder)
+      } else {
+        url <- sprintf("%s/%s/%s/%s", host, org_enc, proj_enc, clean_endpoint)
+      }
+    } else {
+      url <- sprintf("%s/%s/%s", host, org_enc, clean_endpoint)
     }
   }
 
@@ -114,13 +140,13 @@ az_request <- function(endpoint,
 #'
 #' @param req An `httr2_request` object.
 #' @param simplifyVector Logical; whether to simplify JSON to vectors/data frames.
-#' @return Parsed JSON object (list or data.frame).
+#' @return Parsed JSON object (list or data.frame), or `NULL` if empty.
 #' @export
 az_perform <- function(req, simplifyVector = FALSE) {
   resp <- httr2::req_perform(req)
   
-  # Status 204 No Content
-  if (httr2::resp_status(resp) == 204) {
+  # Status 204 No Content or empty response body
+  if (httr2::resp_status(resp) == 204 || !httr2::resp_has_body(resp)) {
     return(invisible(NULL))
   }
   

@@ -70,7 +70,7 @@ test_that("az_work_item_create constructs JSON patch and returns S7 object", {
       client = client
     )
     req <- last_request()
-    expect_equal(req$url, "https://dev.azure.com/testorg/_apis/wit/workitems/%24User%20Story?api-version=7.0")
+    expect_equal(req$url, "https://dev.azure.com/testorg/MyProj/_apis/wit/workitems/%24User%20Story?api-version=7.0")
     expect_equal(req$method, "POST")
     expect_equal(req$headers$`Content-Type`, "application/json-patch+json")
     expect_true(S7::S7_inherits(item, az_work_item))
@@ -123,10 +123,10 @@ test_that("az_wiql_query executes and resolves items", {
       mock_response(list(value = list(mock_item_payload)))
     }
   }, {
-    items <- az_wiql_query("SELECT [System.Id] FROM WorkItems", client = client)
+    items <- az_wiql_query("SELECT [System.Id] FROM WorkItems", project = "MyProj", client = client)
     reqs <- captured_requests()
     expect_equal(length(reqs), 2)
-    expect_equal(reqs[[1]]$url, "https://dev.azure.com/testorg/_apis/wit/wiql?api-version=7.0")
+    expect_equal(reqs[[1]]$url, "https://dev.azure.com/testorg/MyProj/_apis/wit/wiql?api-version=7.0")
     expect_equal(reqs[[1]]$method, "POST")
     expect_equal(reqs[[2]]$url, "https://dev.azure.com/testorg/_apis/wit/workitems?api-version=7.0&ids=123&%24expand=all")
     expect_equal(length(items), 1)
@@ -169,17 +169,32 @@ test_that("az_iterations_list and az_sprint_capacity_get return sprint analytics
     }
   }, {
     iterations <- az_iterations_list(project = "Proj", team = "TeamA", client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/work/teamsettings/iterations?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/Proj/_apis/work/teamsettings/iterations?api-version=7.0")
     expect_s3_class(iterations, "tbl_df")
     expect_equal(nrow(iterations), 1)
     expect_equal(iterations$name, "Sprint 1")
     expect_equal(iterations$start_date, "2026-08-01T00:00:00Z")
     
     capacities <- az_sprint_capacity_get("sprint-1-guid", team = "TeamA", project = "Proj", client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/work/teamsettings/iterations/sprint-1-guid/capacities?api-version=7.0")
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/Proj/_apis/work/teamsettings/iterations/sprint-1-guid/capacities?api-version=7.0")
     expect_s3_class(capacities, "tbl_df")
     expect_equal(nrow(capacities), 1)
     expect_equal(capacities$display_name, "Alice Dev")
     expect_equal(capacities$total_capacity, 8) # 6 + 2
   })
+})
+
+test_that("work item parsing fails loudly when response has no valid ID", {
+  expect_error(
+    .parse_work_item(list(fields = list(`System.Title` = "Missing ID"))),
+    "work item has no valid ID"
+  )
+  expect_error(
+    .parse_work_item(list(id = 0L)),
+    "work item has no valid ID"
+  )
+  expect_error(
+    .parse_work_item(NULL),
+    "work item has no valid ID"
+  )
 })

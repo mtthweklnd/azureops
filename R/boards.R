@@ -10,10 +10,17 @@ NULL
 #' Helper to Parse Azure DevOps Work Item JSON into S7 az_work_item
 #' @noRd
 .parse_work_item <- function(item) {
+  item_id <- purrr::pluck(item, "id")
+  if (is.null(item_id) || is.na(item_id) || as.integer(item_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: work item has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   fields <- purrr::pluck(item, "fields", .default = list())
   
   az_work_item(
-    id = as.integer(purrr::pluck(item, "id", .default = 0L)),
+    id = as.integer(item_id),
     rev = as.integer(purrr::pluck(item, "rev", .default = 1L)),
     type = as.character(purrr::pluck(fields, "System.WorkItemType", .default = "")),
     title = as.character(purrr::pluck(fields, "System.Title", .default = "")),

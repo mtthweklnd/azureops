@@ -8,10 +8,10 @@ There is also a guard for empty response bodies that can never execute, because 
 
 **Blocked by:** 01 — Repo hygiene and a URL-asserting test harness
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Parsing a response with no identity field raises an error naming the operation that failed
-- [ ] No parse helper defaults an identity field to zero or to an empty string
-- [ ] A 200 or 202 with an empty body returns nothing, cleanly, rather than an internal HTTP-library error
-- [ ] The empty-body path is reachable and covered by a test
-- [ ] Error messages distinguish "the API returned an error" from "the API returned something unexpected"
+- [x] Parsing a response with no identity field raises an error naming the operation that failed
+- [x] No parse helper defaults an identity field to zero or to an empty string
+- [x] A 200 or 202 with an empty body returns nothing, cleanly, rather than an internal HTTP-library error
+- [x] The empty-body path is reachable and covered by a test
+- [x] Error messages distinguish "the API returned an error" from "the API returned something unexpected"

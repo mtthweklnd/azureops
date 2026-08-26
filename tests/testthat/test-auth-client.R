@@ -25,13 +25,29 @@ test_that("az_pat errors when no token is present", {
 test_that("az_request builds valid httr2 request with custom query and project", {
   client <- az_client(organization = "testorg", pat = "secret_pat", project = "DemoProject")
   
+  # Org-level endpoint remains unprefixed even when client has a project
   req <- az_request("_apis/projects", client = client)
   expect_s3_class(req, "httr2_request")
   expect_equal(req$url, "https://dev.azure.com/testorg/_apis/projects?api-version=7.0")
   
-  # Request with custom query and scoped to project
-  req_proj <- az_request("test_endpoint", client = client, query = list(top = 10))
-  expect_equal(req_proj$url, "https://dev.azure.com/testorg/DemoProject/test_endpoint?api-version=7.0&top=10")
+  # Project-scoped endpoint gets project prefix
+  req_proj <- az_request("_apis/pipelines", client = client, query = list(top = 10))
+  expect_equal(req_proj$url, "https://dev.azure.com/testorg/DemoProject/_apis/pipelines?api-version=7.0&top=10")
+
+  # Project name containing spaces and parentheses is properly URL-encoded
+  client_special <- az_client(organization = "testorg", pat = "secret_pat", project = "My Project (Alpha)")
+  req_special <- az_request("_apis/wit/workitems", client = client_special)
+  expect_equal(req_special$url, "https://dev.azure.com/testorg/My%20Project%20%28Alpha%29/_apis/wit/workitems?api-version=7.0")
+
+  # Literal comparison when project is already present in endpoint
+  req_already <- az_request("My Project (Alpha)/_apis/wit/workitems", client = client_special)
+  expect_equal(req_already$url, "https://dev.azure.com/testorg/My%20Project%20%28Alpha%29/_apis/wit/workitems?api-version=7.0")
+
+  # Genuinely org-level endpoints remain unprefixed
+  expect_equal(az_request("_apis/teams", client = client_special)$url, "https://dev.azure.com/testorg/_apis/teams?api-version=7.0")
+  expect_equal(az_request("_apis/hooks/subscriptions", client = client_special)$url, "https://dev.azure.com/testorg/_apis/hooks/subscriptions?api-version=7.0")
+  expect_equal(az_request("_apis/graph/groups", client = client_special, base_url = "https://vssps.dev.azure.com")$url, "https://vssps.dev.azure.com/testorg/_apis/graph/groups?api-version=7.0")
+  expect_equal(az_request("_apis/userentitlements", client = client_special, base_url = "https://vsaex.dev.azure.com")$url, "https://vsaex.dev.azure.com/testorg/_apis/userentitlements?api-version=7.0")
 })
 
 test_that("az_perform extracts Azure DevOps JSON error messages on HTTP failures", {
@@ -59,13 +75,31 @@ test_that("az_perform extracts Azure DevOps JSON error messages on HTTP failures
   })
 })
 
-test_that("az_perform handles 204 No Content gracefully", {
-  mock_handler <- function(req) {
-    httr2::response(status_code = 204)
-  }
-  
+test_that("az_perform handles 204 No Content and empty 200/202 bodies gracefully", {
   client <- az_client(organization = "testorg", pat = "secret_pat")
-  httr2::with_mocked_responses(mock_handler, {
+
+  # Status 204 No Content
+  with_mock_api(function(req) {
+    mock_response(NULL, status_code = 204)
+  }, {
+    req <- az_request("_apis/dummy", client = client)
+    res <- az_perform(req)
+    expect_null(res)
+  })
+
+  # Status 200 with empty body (raw(0))
+  with_mock_api(function(req) {
+    mock_response(NULL, status_code = 200)
+  }, {
+    req <- az_request("_apis/dummy", client = client)
+    res <- az_perform(req)
+    expect_null(res)
+  })
+
+  # Status 202 with empty body (raw(0))
+  with_mock_api(function(req) {
+    mock_response(NULL, status_code = 202)
+  }, {
     req <- az_request("_apis/dummy", client = client)
     res <- az_perform(req)
     expect_null(res)

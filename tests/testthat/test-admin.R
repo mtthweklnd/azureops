@@ -80,9 +80,12 @@ test_that("az_teams_list and az_team_members_list work", {
     expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/teams?api-version=7.0")
     expect_equal(nrow(teams), 1)
     expect_equal(teams$name, "Core Team")
+
+    teams_proj <- az_teams_list(project = "My Project (v1)", client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/projects/My%20Project%20%28v1%29/teams?api-version=7.0")
     
-    members <- az_team_members_list(project = "Proj", team_id = "team-1", client = client)
-    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/projects/Proj/teams/team-1/members?api-version=7.0")
+    members <- az_team_members_list(project = "My Project (v1)", team_id = "Team (A)", client = client)
+    expect_equal(last_request()$url, "https://dev.azure.com/testorg/_apis/projects/My%20Project%20%28v1%29/teams/Team%20%28A%29/members?api-version=7.0")
     expect_equal(nrow(members), 1)
     expect_equal(members$display_name, "Alice Dev")
   })

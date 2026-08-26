@@ -10,11 +10,11 @@ Most remaining tickets are gated on this one, because verifying them requires a 
 
 **Blocked by:** 01 — Repo hygiene and a URL-asserting test harness
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] A project-scoped call produces a path of the form `{org}/{project}/_apis/...`
-- [ ] Genuinely organisation-level calls (projects, teams, hooks, graph, entitlements) remain unprefixed
-- [ ] A project or repository name containing a space or parentheses produces a correctly encoded URL rather than a parse error
-- [ ] The "project already present in path" check compares literally rather than as a regular expression
-- [ ] Every exported function accepting `project` has a test asserting the URL it produces
-- [ ] The URLs pinned in ticket 01 are updated to their corrected forms, and the diff shows every URL that changed
+- [x] A project-scoped call produces a path of the form `{org}/{project}/_apis/...`
+- [x] Genuinely organisation-level calls (projects, teams, hooks, graph, entitlements) remain unprefixed
+- [x] A project or repository name containing a space or parentheses produces a correctly encoded URL rather than a parse error
+- [x] The "project already present in path" check compares literally rather than as a regular expression
+- [x] Every exported function accepting `project` has a test asserting the URL it produces
+- [x] The URLs pinned in ticket 01 are updated to their corrected forms, and the diff shows every URL that changed

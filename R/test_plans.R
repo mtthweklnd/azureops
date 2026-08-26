@@ -1,13 +1,21 @@
 #' @include classes.R client.R generics.R
 #' @importFrom purrr pluck map_int map_chr
 #' @importFrom tibble tibble
+#' @importFrom cli cli_abort
 NULL
 
 #' Parse Test Plan JSON into S7 az_test_plan
 #' @noRd
 .parse_test_plan <- function(item) {
+  plan_id <- purrr::pluck(item, "id")
+  if (is.null(plan_id) || is.na(plan_id) || as.integer(plan_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: test plan has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   az_test_plan(
-    id = as.integer(purrr::pluck(item, "id", .default = 0L)),
+    id = as.integer(plan_id),
     name = as.character(purrr::pluck(item, "name", .default = "")),
     state = as.character(purrr::pluck(item, "state", .default = "Active")),
     area_path = as.character(purrr::pluck(item, "areaPath", .default = "")),
@@ -19,12 +27,19 @@ NULL
 #' Parse Test Run JSON into S7 az_test_run
 #' @noRd
 .parse_test_run <- function(item) {
+  run_id <- purrr::pluck(item, "id")
+  if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
+    cli::cli_abort(c(
+      "x" = "Unexpected API response: test run has no valid ID.",
+      "i" = "The Azure DevOps API returned an unexpected response structure."
+    ))
+  }
   total <- as.integer(purrr::pluck(item, "totalTests", .default = 0L))
   passed <- as.integer(purrr::pluck(item, "passedTests", .default = 0L))
   rate <- if (total > 0) passed / total else 0.0
   
   az_test_run(
-    id = as.integer(purrr::pluck(item, "id", .default = 0L)),
+    id = as.integer(run_id),
     name = as.character(purrr::pluck(item, "name", .default = "")),
     state = as.character(purrr::pluck(item, "state", .default = "")),
     total_tests = total,
