@@ -111,6 +111,3 @@ coverage <- az_code_coverage_get(build_id = 1024)
 print(coverage)
 ```
 
-## License
-
-MIT © 2026 AzureOps Authors
