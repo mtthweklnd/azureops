@@ -198,3 +198,170 @@ test_that("work item parsing fails loudly when response has no valid ID", {
     "work item has no valid ID"
   )
 })
+
+test_that(".build_my_work_items_wiql constructs expected WIQL queries", {
+  # Defaults: @me and active state
+  q1 <- .build_my_work_items_wiql()
+  expect_true(grepl("\\[System.AssignedTo\\] = @me", q1))
+  expect_true(grepl("\\[System.State\\] NOT IN \\('Closed', 'Completed', 'Resolved', 'Removed'\\)", q1))
+  
+  # Explicit email and specific state
+  q2 <- .build_my_work_items_wiql(email = "alice@example.com", state = "New")
+  expect_true(grepl("\\[System.AssignedTo\\] CONTAINS 'alice@example.com'", q2))
+  expect_true(grepl("\\[System.State\\] = 'New'", q2))
+  
+  # Single type filter
+  q3 <- .build_my_work_items_wiql(type = "Bug")
+  expect_true(grepl("\\[System.WorkItemType\\] = 'Bug'", q3))
+  
+  # Multiple type filters
+  q4 <- .build_my_work_items_wiql(type = c("Bug", "Task"))
+  expect_true(grepl("\\[System.WorkItemType\\] IN \\('Bug', 'Task'\\)", q4))
+  
+  # State = "all" excludes state filter from WHERE clause
+  q5 <- .build_my_work_items_wiql(state = "all")
+  expect_false(grepl("WHERE .* \\[System.State\\]", q5))
+  
+  # sprint_only = TRUE
+  q6 <- .build_my_work_items_wiql(sprint_only = TRUE)
+  expect_true(grepl("\\[System.IterationPath\\] = @currentIteration", q6))
+  
+  # String escaping single quotes
+  q7 <- .build_my_work_items_wiql(email = "o'connor@example.com")
+  expect_true(grepl("o''connor@example.com", q7))
+})
+
+test_that(".build_feature_work_items_wiql constructs expected queries and validates input", {
+  q1 <- .build_feature_work_items_wiql(100L)
+  expect_true(grepl("\\[System.Parent\\] = 100", q1))
+  
+  q2 <- .build_feature_work_items_wiql(100L, state = "active")
+  expect_true(grepl("\\[System.Parent\\] = 100 AND \\[System.State\\] NOT IN", q2))
+  
+  expect_error(.build_feature_work_items_wiql(NULL), "must be a positive integer")
+  expect_error(.build_feature_work_items_wiql(-5L), "must be a positive integer")
+})
+
+test_that("az_my_work_items executes WIQL query and returns work items", {
+  client <- az_client(organization = "testorg", pat = "testpat")
+  
+  mock_wiql_payload <- list(
+    queryType = "flat",
+    workItems = list(list(id = 777L, url = "https://..."))
+  )
+  
+  mock_item_payload <- list(
+    id = 777L,
+    fields = list(
+      `System.Title` = "User Task",
+      `System.State` = "Active",
+      `System.WorkItemType` = "Task",
+      `System.AssignedTo` = list(displayName = "Charlie Eng")
+    )
+  )
+  
+  last_wiql_sent <- NULL
+  
+  with_mock_api(function(req) {
+    if (grepl("_apis/wit/wiql", req$url)) {
+      if (!is.null(req$body$data)) {
+        last_wiql_sent <<- req$body$data$query
+      }
+      mock_response(mock_wiql_payload)
+    } else {
+      mock_response(list(value = list(mock_item_payload)))
+    }
+  }, {
+    items <- az_my_work_items(client = client)
+    reqs <- captured_requests()
+    expect_equal(length(reqs), 2)
+    expect_equal(reqs[[1]]$url, "https://dev.azure.com/testorg/_apis/wit/wiql?api-version=7.0")
+    expect_true(grepl("\\[System.AssignedTo\\] = @me", last_wiql_sent))
+    
+    expect_equal(length(items), 1)
+    expect_equal(items[[1]]@id, 777L)
+    expect_equal(items[[1]]@type, "Task")
+    
+    # Return as tibble
+    df <- az_my_work_items(as_data_frame = TRUE, client = client)
+    expect_s3_class(df, "tbl_df")
+    expect_equal(nrow(df), 1)
+    expect_equal(df$id, 777L)
+  })
+})
+
+test_that("az_feature_work_items handles feature_id and feature_title lookup", {
+  client <- az_client(organization = "testorg", pat = "testpat")
+  
+  mock_feature_wiql_payload <- list(
+    queryType = "flat",
+    workItems = list(list(id = 500L, url = "https://..."))
+  )
+  
+  mock_child_wiql_payload <- list(
+    queryType = "flat",
+    workItems = list(list(id = 501L, url = "https://..."))
+  )
+  
+  mock_child_item_payload <- list(
+    id = 501L,
+    fields = list(
+      `System.Title` = "Feature Child Story",
+      `System.State` = "New",
+      `System.WorkItemType` = "User Story"
+    )
+  )
+  
+  last_wiql_sent <- NULL
+  
+  # By feature_id
+  with_mock_api(function(req) {
+    if (grepl("_apis/wit/wiql", req$url)) {
+      if (!is.null(req$body$data)) {
+        last_wiql_sent <<- req$body$data$query
+      }
+      mock_response(mock_child_wiql_payload)
+    } else {
+      mock_response(list(value = list(mock_child_item_payload)))
+    }
+  }, {
+    items <- az_feature_work_items(feature_id = 500L, client = client)
+    expect_true(grepl("\\[System.Parent\\] = 500", last_wiql_sent))
+    expect_equal(items[[1]]@id, 501L)
+  })
+  
+  # By feature_title search
+  with_mock_api(function(req) {
+    if (grepl("_apis/wit/wiql", req$url)) {
+      query_str <- if (!is.null(req$body$data)) req$body$data$query else ""
+      if (grepl("WorkItemType\\] = 'Feature'", query_str)) {
+        mock_response(mock_feature_wiql_payload)
+      } else {
+        mock_response(mock_child_wiql_payload)
+      }
+    } else {
+      mock_response(list(value = list(mock_child_item_payload)))
+    }
+  }, {
+    items <- az_feature_work_items(feature_title = "OAuth Login", client = client)
+    reqs <- captured_requests()
+    expect_equal(length(reqs), 3) # 1. title search WIQL, 2. child items WIQL, 3. batch get items
+    expect_equal(items[[1]]@id, 501L)
+  })
+  
+  # Error when feature_title lookup returns no match
+  with_mock_api(function(req) {
+    mock_response(list(queryType = "flat", workItems = list()))
+  }, {
+    expect_error(
+      az_feature_work_items(feature_title = "Nonexistent Feature", client = client),
+      "No Feature work item found matching title"
+    )
+  })
+  
+  # Error when neither parameter is supplied
+  expect_error(
+    az_feature_work_items(client = client),
+    "Must provide either a valid `feature_id`"
+  )
+})

@@ -26,10 +26,37 @@ NULL
   )
 }
 
+#' Helper to Clean and Trim String Input
+#' @noRd
+.clean_str <- function(x) {
+  if (is.null(x)) return("")
+  trimws(as.character(x))
+}
+
 #' Helper to Escape Strings for WIQL Queries
 #' @noRd
 .escape_wiql_str <- function(str) {
-  gsub("'", "''", as.character(str), fixed = TRUE)
+  gsub("'", "''", .clean_str(str), fixed = TRUE)
+}
+
+#' Closed Workflow States Constant
+#' @noRd
+.wiql_closed_states <- "('Closed', 'Completed', 'Resolved', 'Removed')"
+
+#' Helper to Build WIQL State Clause
+#' @noRd
+.wiql_state_clause <- function(state) {
+  state_str <- .clean_str(state)
+  if (!nzchar(state_str)) return(NULL)
+  
+  state_clean <- tolower(state_str)
+  if (state_clean == "active") {
+    sprintf("[System.State] NOT IN %s", .wiql_closed_states)
+  } else if (state_clean != "all") {
+    sprintf("[System.State] = '%s'", .escape_wiql_str(state_str))
+  } else {
+    NULL
+  }
 }
 
 #' Helper to Build WIQL Query for User Work Items
@@ -38,26 +65,24 @@ NULL
   where_clauses <- character()
   
   # AssignedTo clause
-  if (is.null(email) || !nzchar(trimws(as.character(email))) || identical(trimws(as.character(email)), "@me")) {
+  email_str <- .clean_str(email)
+  if (!nzchar(email_str) || identical(email_str, "@me")) {
     where_clauses <- c(where_clauses, "[System.AssignedTo] = @me")
   } else {
-    escaped_email <- .escape_wiql_str(trimws(as.character(email)))
+    escaped_email <- .escape_wiql_str(email_str)
     where_clauses <- c(where_clauses, sprintf("[System.AssignedTo] CONTAINS '%s'", escaped_email))
   }
   
   # State clause
-  if (!is.null(state) && nzchar(trimws(as.character(state)))) {
-    state_clean <- tolower(trimws(as.character(state)))
-    if (state_clean == "active") {
-      where_clauses <- c(where_clauses, "[System.State] NOT IN ('Closed', 'Completed', 'Resolved', 'Removed')")
-    } else if (state_clean != "all") {
-      where_clauses <- c(where_clauses, sprintf("[System.State] = '%s'", .escape_wiql_str(state)))
-    }
+  state_clause <- .wiql_state_clause(state)
+  if (!is.null(state_clause)) {
+    where_clauses <- c(where_clauses, state_clause)
   }
   
   # Type clause
   if (!is.null(type) && length(type) > 0) {
-    type_clean <- as.character(type)[nzchar(trimws(as.character(type)))]
+    type_clean <- purrr::map_chr(type, .clean_str)
+    type_clean <- type_clean[nzchar(type_clean)]
     if (length(type_clean) == 1) {
       where_clauses <- c(where_clauses, sprintf("[System.WorkItemType] = '%s'", .escape_wiql_str(type_clean)))
     } else if (length(type_clean) > 1) {
@@ -79,24 +104,21 @@ NULL
 #' @noRd
 .build_feature_work_items_wiql <- function(feature_id = NULL, state = "all") {
   if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
-    cli::cli_abort("feature_id must be a positive integer.")
+    cli::cli_abort(c(
+      "x" = "Invalid `feature_id`: must be a positive integer.",
+      "i" = "Provide a positive integer Feature ID or search by `feature_title`."
+    ))
   }
   
   where_clauses <- sprintf("[System.Parent] = %d", as.integer(feature_id))
   
-  if (!is.null(state) && nzchar(trimws(as.character(state)))) {
-    state_clean <- tolower(trimws(as.character(state)))
-    if (state_clean == "active") {
-      where_clauses <- paste0(where_clauses, " AND [System.State] NOT IN ('Closed', 'Completed', 'Resolved', 'Removed')")
-    } else if (state_clean != "all") {
-      where_clauses <- paste0(where_clauses, sprintf(" AND [System.State] = '%s'", .escape_wiql_str(state)))
-    }
+  state_clause <- .wiql_state_clause(state)
+  if (!is.null(state_clause)) {
+    where_clauses <- paste0(where_clauses, " AND ", state_clause)
   }
   
   sprintf("SELECT [System.Id], [System.Title], [System.State], [System.WorkItemType] FROM WorkItems WHERE %s ORDER BY [System.Id] ASC", where_clauses)
 }
-
-
 #' Get a Single Work Item
 #'
 #' Retrieves a single work item by ID from Azure Boards.
@@ -390,13 +412,25 @@ az_feature_work_items <- function(feature_id = NULL,
     )
     work_items_ref <- purrr::pluck(feature_lookup, "workItems", .default = list())
     if (length(work_items_ref) == 0) {
-      cli::cli_abort("No Feature work item found matching title: '{feature_title}'")
+      cli::cli_abort(c(
+        "x" = sprintf("No Feature work item found matching title: '%s'.", feature_title),
+        "i" = "Check the Feature title spelling or provide `feature_id` directly."
+      ))
+    }
+    if (length(work_items_ref) > 1) {
+      matched_id <- as.integer(purrr::pluck(work_items_ref[[1]], "id", .default = 0L))
+      cli::cli_inform(c(
+        "i" = sprintf("Multiple Features matched title '%s'. Using most recently changed Feature #%d.", feature_title, matched_id)
+      ))
     }
     feature_id <- as.integer(purrr::pluck(work_items_ref[[1]], "id", .default = 0L))
   }
   
   if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
-    cli::cli_abort("Must provide either a valid `feature_id` (positive integer) or `feature_title`.")
+    cli::cli_abort(c(
+      "x" = "Must provide either a valid `feature_id` (positive integer) or `feature_title`.",
+      "i" = "Specify `feature_id = <ID>` or `feature_title = '<Title>'`."
+    ))
   }
   
   query <- .build_feature_work_items_wiql(
@@ -413,7 +447,6 @@ az_feature_work_items <- function(feature_id = NULL,
     client = client
   )
 }
-
 
 #' List Iterations (Sprints) for a Team
 #'
