@@ -34,6 +34,8 @@ Executes a WIQL query and optionally resolves full work item details.
 }
 \examples{
 \dontrun{
-az_wiql_query("SELECT [System.Id], [System.Title] FROM WorkItems WHERE [System.WorkItemType] = 'Bug'")
+az_wiql_query(
+  "SELECT [System.Id], [System.Title] FROM WorkItems WHERE [System.WorkItemType] = 'Bug'"
+)
 }
 }

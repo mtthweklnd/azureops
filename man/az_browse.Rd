@@ -2,8 +2,36 @@
 % Please edit documentation in R/generics.R
 \name{az_browse}
 \alias{az_browse}
+\alias{az_browse,azureops::az_work_item-method}
+\alias{az_browse,azureops::az_repo-method}
+\alias{az_browse,azureops::az_pull_request-method}
+\alias{az_browse,azureops::az_pipeline-method}
+\alias{az_browse,azureops::az_pipeline_run-method}
+\alias{az_browse,azureops::az_test_plan-method}
+\alias{az_browse,azureops::az_test_run-method}
 \title{Browse an Azure DevOps Resource in Web UI}
 \usage{
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_work_item>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_repo>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_pull_request>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_pipeline>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_pipeline_run>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_test_plan>
+az_browse(x, browser = interactive(), ...)
+
+## S7 method for class <azureops::az_test_run>
 az_browse(x, browser = interactive(), ...)
 }
 \arguments{

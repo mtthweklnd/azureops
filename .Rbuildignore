@@ -12,3 +12,6 @@
 ^tests/testthat/recordings$
 ^azureops_.*\.tar\.gz$
 ^azureops\.Rcheck$
+^_dev$
+^_dev/.*$
+

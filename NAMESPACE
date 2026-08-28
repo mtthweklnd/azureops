@@ -64,8 +64,14 @@ importFrom(S7,
   method
 )
 importFrom(cli,
+  cat_line,
   cli_abort,
-  cli_inform
+  cli_dl,
+  cli_format_method,
+  cli_h3,
+  cli_inform,
+  cli_progress_done,
+  cli_progress_step
 )
 importFrom(httr2,
   req_auth_basic,

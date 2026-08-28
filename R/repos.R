@@ -1,10 +1,4 @@
 #' @include classes.R client.R generics.R
-#' @importFrom purrr pluck map_chr map_int map_lgl
-#' @importFrom rlang arg_match
-#' @importFrom tibble tibble
-#' @importFrom cli cli_abort
-#' @importFrom httr2 req_method req_body_json
-#' @importFrom utils URLencode
 NULL
 
 #' Parse Repository JSON into S7 az_repo
