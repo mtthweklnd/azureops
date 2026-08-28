@@ -2,8 +2,24 @@
 % Please edit documentation in R/generics.R
 \name{az_status}
 \alias{az_status}
+\alias{az_status,azureops::az_pipeline_run-method}
+\alias{az_status,azureops::az_pull_request-method}
+\alias{az_status,azureops::az_work_item-method}
+\alias{az_status,azureops::az_test_run-method}
 \title{Get Status of an Azure DevOps Resource}
 \usage{
+az_status(x, ...)
+
+## S7 method for class <azureops::az_pipeline_run>
+az_status(x, ...)
+
+## S7 method for class <azureops::az_pull_request>
+az_status(x, ...)
+
+## S7 method for class <azureops::az_work_item>
+az_status(x, ...)
+
+## S7 method for class <azureops::az_test_run>
 az_status(x, ...)
 }
 \arguments{

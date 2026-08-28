@@ -80,6 +80,7 @@ az_work_items_get <- function(ids,
   
   if (length(items) > 1) {
     cli::cli_progress_step("Parsing {length(items)} work item{?s}", spinner = TRUE)
+    on.exit(cli::cli_progress_done(), add = TRUE)
   }
   
   parsed <- purrr::map(items, .parse_work_item)
@@ -178,7 +179,9 @@ az_work_item_update <- function(id, fields = list(), client = NULL) {
 #' @export
 #' @examples
 #' \dontrun{
-#' az_wiql_query("SELECT [System.Id], [System.Title] FROM WorkItems WHERE [System.WorkItemType] = 'Bug'")
+#' az_wiql_query(
+#'   "SELECT [System.Id], [System.Title] FROM WorkItems WHERE [System.WorkItemType] = 'Bug'"
+#' )
 #' }
 az_wiql_query <- function(query,
                           project = NULL,
@@ -186,6 +189,9 @@ az_wiql_query <- function(query,
                           resolve = TRUE,
                           as_data_frame = FALSE,
                           client = NULL) {
+  step_id <- cli::cli_progress_step("Executing WIQL query", spinner = TRUE)
+  on.exit(cli::cli_progress_done(id = step_id), add = TRUE)
+  
   query_params <- list()
   if (!is.null(top)) {
     query_params$`$top` <- top
@@ -196,6 +202,7 @@ az_wiql_query <- function(query,
     httr2::req_body_json(list(query = query))
     
   res <- az_perform(req)
+  cli::cli_progress_done(id = step_id)
   
   work_items_ref <- purrr::pluck(res, "workItems", .default = list())
   ids <- purrr::map_int(work_items_ref, ~ as.integer(purrr::pluck(.x, "id", .default = 0L)))
@@ -208,7 +215,11 @@ az_wiql_query <- function(query,
     return(res)
   }
   
-  az_work_items_get(ids, as_data_frame = as_data_frame, client = client)
+  step_id_res <- cli::cli_progress_step("Resolving {length(ids)} work item detail{?s}", spinner = TRUE)
+  on.exit(cli::cli_progress_done(id = step_id_res), add = TRUE)
+  out <- az_work_items_get(ids, as_data_frame = as_data_frame, client = client)
+  cli::cli_progress_done(id = step_id_res)
+  out
 }
 
 #' List Iterations (Sprints) for a Team
