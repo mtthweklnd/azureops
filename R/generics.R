@@ -122,10 +122,19 @@ S7::method(print, az_client) <- function(x, ...) {
 #' @keywords internal
 #' @export
 S7::method(format, az_work_item) <- function(x, ...) {
+  desc_clean <- gsub("<[^>]+>", " ", x@description)
+  desc_clean <- trimws(gsub("\\s+", " ", desc_clean))
+  desc_preview <- if (nzchar(desc_clean)) {
+    if (nchar(desc_clean) > 60) paste0(substr(desc_clean, 1, 57), "...") else desc_clean
+  } else {
+    "<none>"
+  }
+
   .format_cli_dl(
     sprintf("<Azure DevOps Work Item #%d [%s]>", x@id, x@type),
     c(
       "Title"       = x@title,
+      "Description" = desc_preview,
       "State"       = x@state,
       "Assigned To" = if (nzchar(x@assigned_to)) x@assigned_to else "<unassigned>",
       "Revision"    = as.character(x@rev),
@@ -382,14 +391,15 @@ S7::method(az_browse, az_test_run) <- function(x, browser = interactive(), ..., 
 #' @export
 S7::method(convert, list(az_work_item, class_data.frame)) <- function(from, to) {
   tibble::tibble(
-    id = from@id,
-    rev = from@rev,
-    type = from@type,
-    title = from@title,
-    state = from@state,
+    id          = from@id,
+    rev         = from@rev,
+    type        = from@type,
+    title       = from@title,
+    description = from@description,
+    state       = from@state,
     assigned_to = from@assigned_to,
-    url = from@url,
-    web_url = from@web_url
+    url         = from@url,
+    web_url     = from@web_url
   )
 }
 

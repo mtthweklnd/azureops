@@ -18,6 +18,7 @@ NULL
     rev = as.integer(purrr::pluck(item, "rev", .default = 1L)),
     type = as.character(purrr::pluck(fields, "System.WorkItemType", .default = "")),
     title = as.character(purrr::pluck(fields, "System.Title", .default = "")),
+    description = as.character(purrr::pluck(fields, "System.Description", .default = purrr::pluck(fields, "Microsoft.VSTS.TCM.ReproSteps", .default = ""))),
     state = as.character(purrr::pluck(fields, "System.State", .default = "")),
     assigned_to = as.character(purrr::pluck(fields, "System.AssignedTo", "displayName", .default = "")),
     url = as.character(purrr::pluck(item, "url", .default = "")),

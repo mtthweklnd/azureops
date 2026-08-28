@@ -73,6 +73,7 @@ az_client <- S7::new_class(
 #' @param rev Integer revision number (`integer`).
 #' @param type Work item type string (e.g. `"Bug"`, `"Task"`, `"User Story"`, `"Epic"`) (`character`).
 #' @param title Title of the work item (`character`).
+#' @param description Description or reproduction steps of the work item (`character`).
 #' @param state Current workflow state (e.g. `"Active"`, `"Closed"`, `"New"`) (`character`).
 #' @param assigned_to Display name or email of the assigned user (`character`).
 #' @param url REST API self-link URL for the work item (`character`).
@@ -88,6 +89,7 @@ az_work_item <- S7::new_class(
     rev = S7::new_property(S7::class_integer, default = 1L),
     type = S7::new_property(S7::class_character, default = ""),
     title = S7::new_property(S7::class_character, default = ""),
+    description = S7::new_property(S7::class_character, default = ""),
     state = S7::new_property(S7::class_character, default = ""),
     assigned_to = S7::new_property(S7::class_character, default = ""),
     url = S7::new_property(S7::class_character, default = ""),
