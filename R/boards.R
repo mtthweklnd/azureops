@@ -293,6 +293,128 @@ az_wiql_query <- function(query,
   out
 }
 
+#' Get Work Items Assigned to Current User or Email
+#'
+#' Retrieves work items and tasks assigned to a specific user (or the authenticated PAT user by default).
+#' Supports filtering by state, work item type, and current sprint iteration.
+#'
+#' @param email User email string or display name (optional). If `NULL` or `"@me"`, queries items assigned to `@me` (the authenticated user).
+#' @param type Filter by work item type(s) (e.g. `"Task"`, `"User Story"`, `"Bug"`). Can be a character vector. Default `NULL` retrieves all types.
+#' @param state Filter by workflow state. `"active"` (default) excludes `"Closed"`, `"Completed"`, `"Resolved"`, and `"Removed"`. `"all"` retrieves all states. Or specify a specific state string.
+#' @param sprint_only Logical; if `TRUE`, limits results to the team's current iteration (`@currentIteration`). Default `FALSE`.
+#' @param project Project scope (optional).
+#' @param top Maximum number of results to return.
+#' @param resolve Logical; whether to fetch full work item objects (default `TRUE`).
+#' @param as_data_frame Logical; whether to return results as a `tibble` (default `FALSE`).
+#' @param client Optional `az_client` S7 object.
+#' @return A list of S7 `az_work_item` objects, a `tibble`, or raw query results.
+#' @export
+#' @examples
+#' \dontrun{
+#' # Get my active work items and tasks
+#' my_items <- az_my_work_items()
+#' 
+#' # Get active bugs assigned to a user in current sprint
+#' dev_bugs <- az_my_work_items(email = "dev@example.com", type = "Bug", sprint_only = TRUE)
+#' }
+az_my_work_items <- function(email = NULL,
+                             type = NULL,
+                             state = "active",
+                             sprint_only = FALSE,
+                             project = NULL,
+                             top = NULL,
+                             resolve = TRUE,
+                             as_data_frame = FALSE,
+                             client = NULL) {
+  query <- .build_my_work_items_wiql(
+    email = email,
+    type = type,
+    state = state,
+    sprint_only = sprint_only
+  )
+  
+  az_wiql_query(
+    query = query,
+    project = project,
+    top = top,
+    resolve = resolve,
+    as_data_frame = as_data_frame,
+    client = client
+  )
+}
+
+#' Get Work Items Linked to a Feature
+#'
+#' Retrieves child work items (e.g. User Stories, Tasks, Bugs) associated with a specific Feature work item.
+#' The Feature can be specified by integer ID or looked up by title search.
+#'
+#' @param feature_id Integer ID of the Feature work item (optional if `feature_title` is supplied).
+#' @param feature_title String search for Feature by title if `feature_id` is unknown (optional if `feature_id` is supplied).
+#' @param state Filter by workflow state. `"all"` (default) retrieves all states. `"active"` excludes closed items. Or specify a specific state string.
+#' @param project Project scope (optional).
+#' @param top Maximum number of results to return.
+#' @param resolve Logical; whether to fetch full work item objects (default `TRUE`).
+#' @param as_data_frame Logical; whether to return results as a `tibble` (default `FALSE`).
+#' @param client Optional `az_client` S7 object.
+#' @return A list of S7 `az_work_item` objects, a `tibble`, or raw query results.
+#' @export
+#' @examples
+#' \dontrun{
+#' # Get all work items for Feature #1234
+#' items <- az_feature_work_items(feature_id = 1234)
+#' 
+#' # Search Feature by title and get active items
+#' auth_items <- az_feature_work_items(feature_title = "OAuth Authentication", state = "active")
+#' }
+az_feature_work_items <- function(feature_id = NULL,
+                                  feature_title = NULL,
+                                  state = "all",
+                                  project = NULL,
+                                  top = NULL,
+                                  resolve = TRUE,
+                                  as_data_frame = FALSE,
+                                  client = NULL) {
+  if (is.null(feature_id) && !is.null(feature_title) && nzchar(trimws(as.character(feature_title)))) {
+    # Resolve feature_id by querying Feature work item by title
+    escaped_title <- .escape_wiql_str(trimws(as.character(feature_title)))
+    title_query <- sprintf(
+      "SELECT [System.Id], [System.Title] FROM WorkItems WHERE [System.WorkItemType] = 'Feature' AND [System.Title] CONTAINS '%s' ORDER BY [System.ChangedDate] DESC",
+      escaped_title
+    )
+    feature_lookup <- az_wiql_query(
+      query = title_query,
+      project = project,
+      top = 1L,
+      resolve = FALSE,
+      client = client
+    )
+    work_items_ref <- purrr::pluck(feature_lookup, "workItems", .default = list())
+    if (length(work_items_ref) == 0) {
+      cli::cli_abort("No Feature work item found matching title: '{feature_title}'")
+    }
+    feature_id <- as.integer(purrr::pluck(work_items_ref[[1]], "id", .default = 0L))
+  }
+  
+  if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
+    cli::cli_abort("Must provide either a valid `feature_id` (positive integer) or `feature_title`.")
+  }
+  
+  query <- .build_feature_work_items_wiql(
+    feature_id = feature_id,
+    state = state
+  )
+  
+  az_wiql_query(
+    query = query,
+    project = project,
+    top = top,
+    resolve = resolve,
+    as_data_frame = as_data_frame,
+    client = client
+  )
+}
+
+
 #' List Iterations (Sprints) for a Team
 #'
 #' @param project Project name or ID.

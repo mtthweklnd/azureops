@@ -7,9 +7,9 @@ This plan outlines the implementation of preconfigured request helpers in `azure
 - [x] Task 1.2: Implement `.build_feature_work_items_wiql(feature_id, state)` helper function for querying child work items under a target Feature.
 
 ## Phase 2: High-Level Preconfigured Request APIs
-- [ ] Task 2.1: Implement `az_my_work_items()` in `R/boards.R` with roxygen2 documentation supporting `email`, `type`, `state`, `sprint_only`, `project`, `top`, `resolve`, `as_data_frame`, and `client`.
-- [ ] Task 2.2: Implement `az_feature_work_items()` in `R/boards.R` with roxygen2 documentation supporting `feature_id`, `feature_title`, `state`, `project`, `top`, `resolve`, `as_data_frame`, and `client`.
-- [ ] Task 2.3: Generate updated documentation files (`NAMESPACE`, `man/*.Rd`) via `devtools::document()`.
+- [x] Task 2.1: Implement `az_my_work_items()` in `R/boards.R` with roxygen2 documentation supporting `email`, `type`, `state`, `sprint_only`, `project`, `top`, `resolve`, `as_data_frame`, and `client`.
+- [x] Task 2.2: Implement `az_feature_work_items()` in `R/boards.R` with roxygen2 documentation supporting `feature_id`, `feature_title`, `state`, `project`, `top`, `resolve`, `as_data_frame`, and `client`.
+- [x] Task 2.3: Generate updated documentation files (`NAMESPACE`, `man/*.Rd`) via `devtools::document()`.
 
 ## Phase 3: Unit Testing & Suite Verification
 - [ ] Task 3.1: Create `tests/testthat/test-preconfigured-requests.R` with comprehensive tests for `az_my_work_items()`.
