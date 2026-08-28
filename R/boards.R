@@ -26,6 +26,77 @@ NULL
   )
 }
 
+#' Helper to Escape Strings for WIQL Queries
+#' @noRd
+.escape_wiql_str <- function(str) {
+  gsub("'", "''", as.character(str), fixed = TRUE)
+}
+
+#' Helper to Build WIQL Query for User Work Items
+#' @noRd
+.build_my_work_items_wiql <- function(email = NULL, type = NULL, state = "active", sprint_only = FALSE) {
+  where_clauses <- character()
+  
+  # AssignedTo clause
+  if (is.null(email) || !nzchar(trimws(as.character(email))) || identical(trimws(as.character(email)), "@me")) {
+    where_clauses <- c(where_clauses, "[System.AssignedTo] = @me")
+  } else {
+    escaped_email <- .escape_wiql_str(trimws(as.character(email)))
+    where_clauses <- c(where_clauses, sprintf("[System.AssignedTo] CONTAINS '%s'", escaped_email))
+  }
+  
+  # State clause
+  if (!is.null(state) && nzchar(trimws(as.character(state)))) {
+    state_clean <- tolower(trimws(as.character(state)))
+    if (state_clean == "active") {
+      where_clauses <- c(where_clauses, "[System.State] NOT IN ('Closed', 'Completed', 'Resolved', 'Removed')")
+    } else if (state_clean != "all") {
+      where_clauses <- c(where_clauses, sprintf("[System.State] = '%s'", .escape_wiql_str(state)))
+    }
+  }
+  
+  # Type clause
+  if (!is.null(type) && length(type) > 0) {
+    type_clean <- as.character(type)[nzchar(trimws(as.character(type)))]
+    if (length(type_clean) == 1) {
+      where_clauses <- c(where_clauses, sprintf("[System.WorkItemType] = '%s'", .escape_wiql_str(type_clean)))
+    } else if (length(type_clean) > 1) {
+      types_formatted <- paste0("'", purrr::map_chr(type_clean, .escape_wiql_str), "'", collapse = ", ")
+      where_clauses <- c(where_clauses, sprintf("[System.WorkItemType] IN (%s)", types_formatted))
+    }
+  }
+  
+  # Sprint clause
+  if (isTRUE(sprint_only)) {
+    where_clauses <- c(where_clauses, "[System.IterationPath] = @currentIteration")
+  }
+  
+  where_str <- paste(where_clauses, collapse = " AND ")
+  sprintf("SELECT [System.Id], [System.Title], [System.State], [System.WorkItemType], [System.AssignedTo] FROM WorkItems WHERE %s ORDER BY [System.ChangedDate] DESC", where_str)
+}
+
+#' Helper to Build WIQL Query for Feature Work Items
+#' @noRd
+.build_feature_work_items_wiql <- function(feature_id = NULL, state = "all") {
+  if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
+    cli::cli_abort("feature_id must be a positive integer.")
+  }
+  
+  where_clauses <- sprintf("[System.Parent] = %d", as.integer(feature_id))
+  
+  if (!is.null(state) && nzchar(trimws(as.character(state)))) {
+    state_clean <- tolower(trimws(as.character(state)))
+    if (state_clean == "active") {
+      where_clauses <- paste0(where_clauses, " AND [System.State] NOT IN ('Closed', 'Completed', 'Resolved', 'Removed')")
+    } else if (state_clean != "all") {
+      where_clauses <- paste0(where_clauses, sprintf(" AND [System.State] = '%s'", .escape_wiql_str(state)))
+    }
+  }
+  
+  sprintf("SELECT [System.Id], [System.Title], [System.State], [System.WorkItemType] FROM WorkItems WHERE %s ORDER BY [System.Id] ASC", where_clauses)
+}
+
+
 #' Get a Single Work Item
 #'
 #' Retrieves a single work item by ID from Azure Boards.
