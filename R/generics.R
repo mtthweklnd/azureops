@@ -23,9 +23,10 @@ az_status <- S7::new_generic("az_status", "x")
 #' @param x An Azure DevOps S7 object with a web URL.
 #' @param browser Logical; whether to open in browser (defaults to `interactive()`).
 #' @param ... Additional arguments passed to methods.
+#' @param call Caller environment for error attribution.
 #' @return The URL string (invisibly if browser is opened).
 #' @export
-az_browse <- S7::new_generic("az_browse", "x", function(x, browser = interactive(), ...) S7::S7_dispatch())
+az_browse <- S7::new_generic("az_browse", "x", function(x, browser = interactive(), ..., call = rlang::caller_env()) S7::S7_dispatch())
 
 #' Fetch Logs for an Azure DevOps Resource
 #'

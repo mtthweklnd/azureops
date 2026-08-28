@@ -13,7 +13,8 @@ az_my_work_items(
   top = NULL,
   resolve = TRUE,
   as_data_frame = FALSE,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ az_my_work_items(
 \item{as_data_frame}{Logical; whether to return results as a \code{tibble} (default \code{FALSE}).}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 A list of S7 \code{az_work_item} objects, a \code{tibble}, or raw query results.

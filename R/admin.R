@@ -263,6 +263,7 @@ az_webhooks_list <- function(client = NULL) {
 #' @param consumer_action_id Consumer action (e.g. `"httpRequest"`).
 #' @param publisher_inputs Named list of publisher filters (e.g. `list(projectId = "...")`).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A list containing the created subscription details.
 #' @export
 az_webhook_create <- function(event_type,

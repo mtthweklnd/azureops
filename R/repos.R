@@ -24,7 +24,7 @@ NULL
 #' @noRd
 .parse_pull_request <- function(item, call = rlang::caller_env()) {
   pr_id <- purrr::pluck(item, "pullRequestId")
-  if (is.null(pr_id) || is.na(pr_id) || as.integer(pr_id) <= 0L) {
+  if (!.is_valid_id(pr_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pull request has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -81,6 +81,7 @@ az_repos_list <- function(project = NULL, client = NULL) {
 #' @param repository_id Repository name or ID.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_repo` object.
 #' @export
 az_repo_get <- function(repository_id, project = NULL, client = NULL, call = rlang::caller_env()) {
@@ -183,6 +184,7 @@ az_commit_get <- function(repository_id, commit_id, project = NULL, client = NUL
 #' @param top Maximum number of pull requests to retrieve.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A `tibble` of pull requests.
 #' @export
 az_pull_requests_list <- function(repository_id = NULL,
@@ -236,6 +238,7 @@ az_pull_requests_list <- function(repository_id = NULL,
 #' @param repository_id Optional repository name or ID.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_pull_request` object.
 #' @export
 az_pull_request_get <- function(pull_request_id,
@@ -265,6 +268,7 @@ az_pull_request_get <- function(pull_request_id,
 #' @param is_draft Logical; whether to create as a draft pull request.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_pull_request` object.
 #' @export
 az_pull_request_create <- function(repository_id,

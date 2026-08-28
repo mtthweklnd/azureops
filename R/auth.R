@@ -4,6 +4,7 @@
 #' `AZURE_DEVOPS_PAT` and `AZURE_PAT` environment variables.
 #'
 #' @param pat Optional PAT string. If `NULL`, looks in environment variables.
+#' @param call Caller environment for error attribution.
 #' @return A non-empty PAT string.
 #' @export
 #' @examples
@@ -30,6 +31,7 @@ az_pat <- function(pat = NULL, call = rlang::caller_env()) {
 #' the `AZURE_DEVOPS_ORG` and `AZURE_ORG` environment variables.
 #'
 #' @param organization Optional organization string.
+#' @param call Caller environment for error attribution.
 #' @return An organization string.
 #' @export
 az_org <- function(organization = NULL, call = rlang::caller_env()) {
@@ -60,3 +62,14 @@ az_project <- function(project = NULL) {
   }
   Sys.getenv("AZURE_DEVOPS_PROJECT", unset = Sys.getenv("AZURE_PROJECT", unset = ""))
 }
+
+#' Helper to Check if an Object is a Valid Positive Integer ID
+#' @noRd
+.is_valid_id <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  num <- suppressWarnings(as.integer(x))
+  !is.na(num) && num > 0L
+}
+

@@ -5,7 +5,7 @@ NULL
 #' @noRd
 .parse_test_plan <- function(item, call = rlang::caller_env()) {
   plan_id <- purrr::pluck(item, "id")
-  if (is.null(plan_id) || is.na(plan_id) || as.integer(plan_id) <= 0L) {
+  if (!.is_valid_id(plan_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: test plan has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -25,7 +25,7 @@ NULL
 #' @noRd
 .parse_test_run <- function(item, call = rlang::caller_env()) {
   run_id <- purrr::pluck(item, "id")
-  if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
+  if (!.is_valid_id(run_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: test run has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -180,6 +180,7 @@ az_test_runs_list <- function(top = 50, project = NULL, client = NULL) {
 #' @param run_id Integer ID of the test run.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_test_run` object.
 #' @export
 az_test_run_metrics_get <- function(run_id, project = NULL, client = NULL, call = rlang::caller_env()) {

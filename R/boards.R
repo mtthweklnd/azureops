@@ -5,7 +5,7 @@ NULL
 #' @noRd
 .parse_work_item <- function(item, call = rlang::caller_env()) {
   item_id <- purrr::pluck(item, "id")
-  if (is.null(item_id) || is.na(item_id) || as.integer(item_id) <= 0L) {
+  if (!.is_valid_id(item_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: work item has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -103,7 +103,7 @@ NULL
 #' Helper to Build WIQL Query for Feature Work Items
 #' @noRd
 .build_feature_work_items_wiql <- function(feature_id = NULL, state = "all", call = rlang::caller_env()) {
-  if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
+  if (!.is_valid_id(feature_id)) {
     cli::cli_abort(c(
       "x" = "Invalid `feature_id`: must be a positive integer.",
       "i" = "Provide a positive integer Feature ID or search by `feature_title`."
@@ -119,6 +119,7 @@ NULL
   
   sprintf("SELECT [System.Id], [System.Title], [System.State], [System.WorkItemType] FROM WorkItems WHERE %s ORDER BY [System.Id] ASC", where_clauses)
 }
+
 #' Get a Single Work Item
 #'
 #' Retrieves a single work item by ID from Azure Boards.
@@ -126,6 +127,7 @@ NULL
 #' @param id Integer ID of the work item.
 #' @param expand Expand options (`"all"`, `"relations"`, `"fields"`, `"none"`).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_work_item` object.
 #' @export
 #' @examples
@@ -149,6 +151,7 @@ az_work_item_get <- function(id, expand = c("all", "relations", "fields", "none"
 #' @param expand Expand options (`"all"`, `"relations"`, `"fields"`, `"none"`).
 #' @param as_data_frame Logical; whether to return as a `tibble` (default `FALSE` returns list of S7 objects).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A list of S7 `az_work_item` objects or a `tibble`.
 #' @export
 az_work_items_get <- function(ids,
@@ -177,7 +180,7 @@ az_work_items_get <- function(ids,
     on.exit(cli::cli_progress_done(), add = TRUE)
   }
   
-  parsed <- purrr::map(items, .parse_work_item, call = call)
+  parsed <- lapply(items, .parse_work_item, call = call)
   
   if (as_data_frame) {
     purrr::map_dfr(parsed, ~ S7::convert(.x, S7::class_data.frame))
@@ -195,6 +198,7 @@ az_work_items_get <- function(ids,
 #' @param fields Named list of additional fields (e.g. `list("Microsoft.VSTS.Common.Priority" = 1)`).
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_work_item` object.
 #' @export
 az_work_item_create <- function(type,
@@ -238,6 +242,7 @@ az_work_item_create <- function(type,
 #' @param id Integer ID of the work item to update.
 #' @param fields Named list of fields to update (e.g. `list("System.State" = "Closed", "System.Title" = "New Title")`).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return Updated S7 `az_work_item` object.
 #' @export
 az_work_item_update <- function(id, fields = list(), client = NULL, call = rlang::caller_env()) {
@@ -270,6 +275,7 @@ az_work_item_update <- function(id, fields = list(), client = NULL, call = rlang
 #' @param resolve Logical; whether to resolve and fetch full work item objects (default `TRUE`).
 #' @param as_data_frame Logical; whether to return results as a `tibble`.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A list of S7 `az_work_item` objects, a `tibble`, or raw query results.
 #' @export
 #' @examples
@@ -283,7 +289,8 @@ az_wiql_query <- function(query,
                           top = NULL,
                           resolve = TRUE,
                           as_data_frame = FALSE,
-                          client = NULL) {
+                          client = NULL,
+                          call = rlang::caller_env()) {
   step_id <- cli::cli_progress_step("Executing WIQL query", spinner = TRUE)
   on.exit(cli::cli_progress_done(id = step_id), add = TRUE)
   
@@ -312,7 +319,7 @@ az_wiql_query <- function(query,
   
   step_id_res <- cli::cli_progress_step("Resolving {length(ids)} work item detail{?s}", spinner = TRUE)
   on.exit(cli::cli_progress_done(id = step_id_res), add = TRUE)
-  out <- az_work_items_get(ids, as_data_frame = as_data_frame, client = client)
+  out <- az_work_items_get(ids, as_data_frame = as_data_frame, client = client, call = call)
   cli::cli_progress_done(id = step_id_res)
   out
 }
@@ -331,6 +338,7 @@ az_wiql_query <- function(query,
 #' @param resolve Logical; whether to fetch full work item objects (default `TRUE`).
 #' @param as_data_frame Logical; whether to return results as a `tibble` (default `FALSE`).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A list of S7 `az_work_item` objects, a `tibble`, or raw query results.
 #' @export
 #' @examples
@@ -349,7 +357,8 @@ az_my_work_items <- function(email = NULL,
                              top = NULL,
                              resolve = TRUE,
                              as_data_frame = FALSE,
-                             client = NULL) {
+                             client = NULL,
+                             call = rlang::caller_env()) {
   query <- .build_my_work_items_wiql(
     email = email,
     type = type,
@@ -363,7 +372,8 @@ az_my_work_items <- function(email = NULL,
     top = top,
     resolve = resolve,
     as_data_frame = as_data_frame,
-    client = client
+    client = client,
+    call = call
   )
 }
 
@@ -380,6 +390,7 @@ az_my_work_items <- function(email = NULL,
 #' @param resolve Logical; whether to fetch full work item objects (default `TRUE`).
 #' @param as_data_frame Logical; whether to return results as a `tibble` (default `FALSE`).
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return A list of S7 `az_work_item` objects, a `tibble`, or raw query results.
 #' @export
 #' @examples
@@ -411,7 +422,8 @@ az_feature_work_items <- function(feature_id = NULL,
       project = project,
       top = 1L,
       resolve = FALSE,
-      client = client
+      client = client,
+      call = call
     )
     work_items_ref <- purrr::pluck(feature_lookup, "workItems", .default = list())
     if (length(work_items_ref) == 0) {
@@ -429,7 +441,7 @@ az_feature_work_items <- function(feature_id = NULL,
     feature_id <- as.integer(purrr::pluck(work_items_ref[[1]], "id", .default = 0L))
   }
   
-  if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
+  if (!.is_valid_id(feature_id)) {
     cli::cli_abort(c(
       "x" = "Must provide either a valid `feature_id` (positive integer) or `feature_title`.",
       "i" = "Specify `feature_id = <ID>` or `feature_title = '<Title>'`."
@@ -448,7 +460,8 @@ az_feature_work_items <- function(feature_id = NULL,
     top = top,
     resolve = resolve,
     as_data_frame = as_data_frame,
-    client = client
+    client = client,
+    call = call
   )
 }
 

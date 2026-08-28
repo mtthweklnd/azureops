@@ -23,11 +23,12 @@ test_that("az_browse returns URL when browser = FALSE", {
   repo <- az_repo(id = "r1", name = "my-repo", web_url = "https://dev.azure.com/myorg/proj/_git/my-repo")
   expect_equal(az_browse(repo, browser = FALSE), "https://dev.azure.com/myorg/proj/_git/my-repo")
   
-  # Error if empty URL reports az_browse call context
+  # Error if empty URL reports caller frame context
   empty_repo <- az_repo(id = "r2", name = "empty")
-  cnd <- rlang::catch_cnd(az_browse(empty_repo, browser = FALSE))
+  wrapper_browse <- function() az_browse(empty_repo, browser = FALSE)
+  cnd <- rlang::catch_cnd(wrapper_browse(), classes = "error")
   expect_s3_class(cnd, "rlang_error")
-  expect_equal(rlang::call_name(cnd$call), "az_browse")
+  expect_equal(rlang::call_name(cnd$call), "wrapper_browse")
 })
 
 test_that("S7::convert to class_data.frame converts domain objects into tibbles", {

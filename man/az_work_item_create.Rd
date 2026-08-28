@@ -29,6 +29,8 @@ az_work_item_create(
 \item{project}{Project name or ID.}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 An S7 \code{az_work_item} object.

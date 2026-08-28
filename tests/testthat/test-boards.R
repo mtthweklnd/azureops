@@ -374,9 +374,18 @@ test_that("error call context correctly attributes errors to caller environment"
   wrapper_fn1 <- function() {
     az_feature_work_items(feature_id = -1, client = client)
   }
-  cnd <- rlang::catch_cnd(wrapper_fn1())
+  cnd <- rlang::catch_cnd(wrapper_fn1(), classes = "error")
   expect_s3_class(cnd, "rlang_error")
   expect_equal(rlang::call_name(cnd$call), "wrapper_fn1")
+
+  # Non-numeric string feature_id produces clean error attributed to caller frame
+  wrapper_fn_str <- function() {
+    az_feature_work_items(feature_id = "abc", client = client)
+  }
+  cnd_str <- rlang::catch_cnd(wrapper_fn_str(), classes = "error")
+  expect_s3_class(cnd_str, "rlang_error")
+  expect_equal(rlang::call_name(cnd_str$call), "wrapper_fn_str")
+  expect_match(cnd_str$message, "Must provide either a valid `feature_id`")
 
   # When helper .parse_work_item fails inside az_work_item_get,
   # error call is attributed to caller frame (wrapper_fn2), not .parse_work_item
@@ -386,8 +395,53 @@ test_that("error call context correctly attributes errors to caller environment"
   with_mock_api(function(req) {
     mock_response(list(id = NULL))
   }, {
-    cnd2 <- rlang::catch_cnd(wrapper_fn2())
+    cnd2 <- rlang::catch_cnd(wrapper_fn2(), classes = "error")
     expect_s3_class(cnd2, "rlang_error")
     expect_equal(rlang::call_name(cnd2$call), "wrapper_fn2")
+  })
+
+  # When az_work_items_get encounters malformed work item,
+  # error call is attributed to caller frame (wrapper_fn3), bypassing purrr::map wrapper
+  wrapper_fn3 <- function() {
+    az_work_items_get(c(101L, 102L), client = client)
+  }
+  with_mock_api(function(req) {
+    mock_response(list(value = list(list(id = 101L, fields = list()), list(id = NULL))))
+  }, {
+    cnd3 <- rlang::catch_cnd(wrapper_fn3(), classes = "error")
+    expect_s3_class(cnd3, "rlang_error")
+    expect_equal(rlang::call_name(cnd3$call), "wrapper_fn3")
+  })
+
+  # When az_my_work_items with resolve = TRUE encounters malformed work item response
+  wrapper_fn4 <- function() {
+    az_my_work_items(client = client)
+  }
+  with_mock_api(function(req) {
+    if (grepl("_apis/wit/wiql", req$url)) {
+      mock_response(list(queryType = "flat", workItems = list(list(id = 201L))))
+    } else {
+      mock_response(list(value = list(list(id = NULL))))
+    }
+  }, {
+    cnd4 <- rlang::catch_cnd(wrapper_fn4(), classes = "error")
+    expect_s3_class(cnd4, "rlang_error")
+    expect_equal(rlang::call_name(cnd4$call), "wrapper_fn4")
+  })
+
+  # When az_feature_work_items with resolve = TRUE encounters malformed work item response
+  wrapper_fn5 <- function() {
+    az_feature_work_items(feature_id = 999L, client = client)
+  }
+  with_mock_api(function(req) {
+    if (grepl("_apis/wit/wiql", req$url)) {
+      mock_response(list(queryType = "flat", workItems = list(list(id = 301L))))
+    } else {
+      mock_response(list(value = list(list(id = NULL))))
+    }
+  }, {
+    cnd5 <- rlang::catch_cnd(wrapper_fn5(), classes = "error")
+    expect_s3_class(cnd5, "rlang_error")
+    expect_equal(rlang::call_name(cnd5$call), "wrapper_fn5")
   })
 })

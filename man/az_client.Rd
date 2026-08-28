@@ -23,6 +23,8 @@ az_client(
 \item{base_url}{Base URL for REST API (default: \code{"https://dev.azure.com"}).}
 
 \item{api_version}{Default API version (default: \code{"7.0"}).}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 An S7 \code{az_client} object.

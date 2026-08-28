@@ -17,6 +17,8 @@ az_work_item_get(
 \item{expand}{Expand options (\code{"all"}, \code{"relations"}, \code{"fields"}, \code{"none"}).}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 An S7 \code{az_work_item} object.

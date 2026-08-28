@@ -20,6 +20,8 @@ az_work_items_get(
 \item{as_data_frame}{Logical; whether to return as a \code{tibble} (default \code{FALSE} returns list of S7 objects).}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 A list of S7 \code{az_work_item} objects or a \code{tibble}.

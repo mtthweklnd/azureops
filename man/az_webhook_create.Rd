@@ -32,6 +32,8 @@ az_webhook_create(
 \item{publisher_inputs}{Named list of publisher filters (e.g. \code{list(projectId = "...")}).}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 A list containing the created subscription details.

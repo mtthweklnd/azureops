@@ -17,6 +17,8 @@ az_work_item_update(
 \item{fields}{Named list of fields to update (e.g. \code{list("System.State" = "Closed", "System.Title" = "New Title")}).}
 
 \item{client}{Optional \code{az_client} S7 object.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 Updated S7 \code{az_work_item} object.

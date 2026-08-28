@@ -8,6 +8,8 @@ az_pat(pat = NULL, call = rlang::caller_env())
 }
 \arguments{
 \item{pat}{Optional PAT string. If \code{NULL}, looks in environment variables.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 A non-empty PAT string.

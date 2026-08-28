@@ -8,6 +8,8 @@ az_org(organization = NULL, call = rlang::caller_env())
 }
 \arguments{
 \item{organization}{Optional organization string.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 An organization string.

@@ -11,7 +11,7 @@
 \alias{az_browse,azureops::az_test_run-method}
 \title{Browse an Azure DevOps Resource in Web UI}
 \usage{
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_work_item>
 az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
@@ -40,6 +40,8 @@ az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 \item{browser}{Logical; whether to open in browser (defaults to \code{interactive()}).}
 
 \item{...}{Additional arguments passed to methods.}
+
+\item{call}{Caller environment for error attribution.}
 }
 \value{
 The URL string (invisibly if browser is opened).

@@ -11,6 +11,7 @@ NULL
 #' @param project Default project name (optional).
 #' @param base_url Base URL for REST API (default: `"https://dev.azure.com"`).
 #' @param api_version Default API version (default: `"7.0"`).
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_client` object.
 #' @export
 #' @examples

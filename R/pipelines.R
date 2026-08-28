@@ -5,7 +5,7 @@ NULL
 #' @noRd
 .parse_pipeline <- function(item, call = rlang::caller_env()) {
   pipeline_id <- purrr::pluck(item, "id")
-  if (is.null(pipeline_id) || is.na(pipeline_id) || as.integer(pipeline_id) <= 0L) {
+  if (!.is_valid_id(pipeline_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pipeline definition has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -24,7 +24,7 @@ NULL
 #' @noRd
 .parse_pipeline_run <- function(item, call = rlang::caller_env()) {
   run_id <- purrr::pluck(item, "id")
-  if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
+  if (!.is_valid_id(run_id)) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pipeline run has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
@@ -81,6 +81,7 @@ az_pipelines_list <- function(project = NULL, client = NULL) {
 #' @param pipeline_id Integer ID of the pipeline.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_pipeline` object.
 #' @export
 az_pipeline_get <- function(pipeline_id, project = NULL, client = NULL, call = rlang::caller_env()) {
@@ -133,6 +134,7 @@ az_pipeline_runs_list <- function(pipeline_id = NULL, project = NULL, client = N
 #' @param run_id Integer ID of the run.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_pipeline_run` object.
 #' @export
 az_pipeline_run_get <- function(pipeline_id, run_id, project = NULL, client = NULL, call = rlang::caller_env()) {
@@ -153,6 +155,7 @@ az_pipeline_run_get <- function(pipeline_id, run_id, project = NULL, client = NU
 #' @param variables Optional named list of runtime variables.
 #' @param project Project name or ID.
 #' @param client Optional `az_client` S7 object.
+#' @param call Caller environment for error attribution.
 #' @return An S7 `az_pipeline_run` object.
 #' @export
 #' @examples
