@@ -9,7 +9,8 @@ az_client(
   pat = NULL,
   project = NULL,
   base_url = "https://dev.azure.com",
-  api_version = "7.0"
+  api_version = "7.0",
+  call = rlang::caller_env()
 )
 }
 \arguments{

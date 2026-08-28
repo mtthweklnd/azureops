@@ -4,7 +4,7 @@
 \alias{az_org}
 \title{Retrieve Azure DevOps Default Organization}
 \usage{
-az_org(organization = NULL)
+az_org(organization = NULL, call = rlang::caller_env())
 }
 \arguments{
 \item{organization}{Optional organization string.}

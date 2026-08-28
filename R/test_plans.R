@@ -3,13 +3,13 @@ NULL
 
 #' Parse Test Plan JSON into S7 az_test_plan
 #' @noRd
-.parse_test_plan <- function(item) {
+.parse_test_plan <- function(item, call = rlang::caller_env()) {
   plan_id <- purrr::pluck(item, "id")
   if (is.null(plan_id) || is.na(plan_id) || as.integer(plan_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: test plan has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   az_test_plan(
     id = as.integer(plan_id),
@@ -23,13 +23,13 @@ NULL
 
 #' Parse Test Run JSON into S7 az_test_run
 #' @noRd
-.parse_test_run <- function(item) {
+.parse_test_run <- function(item, call = rlang::caller_env()) {
   run_id <- purrr::pluck(item, "id")
   if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: test run has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   total <- as.integer(purrr::pluck(item, "totalTests", .default = 0L))
   passed <- as.integer(purrr::pluck(item, "passedTests", .default = 0L))
@@ -182,11 +182,11 @@ az_test_runs_list <- function(top = 50, project = NULL, client = NULL) {
 #' @param client Optional `az_client` S7 object.
 #' @return An S7 `az_test_run` object.
 #' @export
-az_test_run_metrics_get <- function(run_id, project = NULL, client = NULL) {
+az_test_run_metrics_get <- function(run_id, project = NULL, client = NULL, call = rlang::caller_env()) {
   endpoint <- sprintf("_apis/test/runs/%s", run_id)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
-  .parse_test_run(res)
+  .parse_test_run(res, call = call)
 }
 
 #' Get Code Coverage Summary for a Build

@@ -4,7 +4,12 @@
 \alias{az_repo_get}
 \title{Get a Single Git Repository}
 \usage{
-az_repo_get(repository_id, project = NULL, client = NULL)
+az_repo_get(
+  repository_id,
+  project = NULL,
+  client = NULL,
+  call = rlang::caller_env()
+)
 }
 \arguments{
 \item{repository_id}{Repository name or ID.}

@@ -4,7 +4,13 @@
 \alias{az_pipeline_run_get}
 \title{Get a Single Pipeline Run}
 \usage{
-az_pipeline_run_get(pipeline_id, run_id, project = NULL, client = NULL)
+az_pipeline_run_get(
+  pipeline_id,
+  run_id,
+  project = NULL,
+  client = NULL,
+  call = rlang::caller_env()
+)
 }
 \arguments{
 \item{pipeline_id}{Integer ID of the pipeline.}

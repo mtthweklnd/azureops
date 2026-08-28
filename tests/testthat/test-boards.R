@@ -365,3 +365,29 @@ test_that("az_feature_work_items handles feature_id and feature_title lookup", {
     "Must provide either a valid `feature_id`"
   )
 })
+
+test_that("error call context correctly attributes errors to caller environment", {
+  client <- az_client(organization = "testorg", pat = "testpat")
+  
+  # When helper .build_feature_work_items_wiql fails inside az_feature_work_items,
+  # error call is attributed to caller frame (wrapper_fn1), not .build_feature_work_items_wiql
+  wrapper_fn1 <- function() {
+    az_feature_work_items(feature_id = -1, client = client)
+  }
+  cnd <- rlang::catch_cnd(wrapper_fn1())
+  expect_s3_class(cnd, "rlang_error")
+  expect_equal(rlang::call_name(cnd$call), "wrapper_fn1")
+
+  # When helper .parse_work_item fails inside az_work_item_get,
+  # error call is attributed to caller frame (wrapper_fn2), not .parse_work_item
+  wrapper_fn2 <- function() {
+    az_work_item_get(123L, client = client)
+  }
+  with_mock_api(function(req) {
+    mock_response(list(id = NULL))
+  }, {
+    cnd2 <- rlang::catch_cnd(wrapper_fn2())
+    expect_s3_class(cnd2, "rlang_error")
+    expect_equal(rlang::call_name(cnd2$call), "wrapper_fn2")
+  })
+})

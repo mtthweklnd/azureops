@@ -7,7 +7,8 @@
 az_work_item_get(
   id,
   expand = c("all", "relations", "fields", "none"),
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

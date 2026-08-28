@@ -4,7 +4,7 @@
 \alias{az_pat}
 \title{Retrieve or Validate Azure DevOps Personal Access Token (PAT)}
 \usage{
-az_pat(pat = NULL)
+az_pat(pat = NULL, call = rlang::caller_env())
 }
 \arguments{
 \item{pat}{Optional PAT string. If \code{NULL}, looks in environment variables.}

@@ -10,7 +10,8 @@ az_pipeline_run_trigger(
   template_parameters = list(),
   variables = list(),
   project = NULL,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

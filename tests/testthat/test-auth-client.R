@@ -22,6 +22,16 @@ test_that("az_pat errors when no token is present", {
   })
 })
 
+test_that("az_client constructor passes call environment to az_org and az_pat", {
+  withr::with_envvar(c(AZURE_DEVOPS_ORG = "", AZURE_ORG = "", AZURE_DEVOPS_PAT = "", AZURE_PAT = ""), {
+    wrapper_fn <- function() az_client()
+    cnd <- rlang::catch_cnd(wrapper_fn())
+    expect_s3_class(cnd, "rlang_error")
+    # Bypasses internal helper az_org and attributes call to outer caller frame
+    expect_equal(rlang::call_name(cnd$call), "wrapper_fn")
+  })
+})
+
 test_that("az_request builds valid httr2 request with custom query and project", {
   client <- az_client(organization = "testorg", pat = "secret_pat", project = "DemoProject")
   

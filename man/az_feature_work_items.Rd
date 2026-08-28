@@ -12,7 +12,8 @@ az_feature_work_items(
   top = NULL,
   resolve = TRUE,
   as_data_frame = FALSE,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

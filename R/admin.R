@@ -272,9 +272,10 @@ az_webhook_create <- function(event_type,
                               consumer_id = "webHooks",
                               consumer_action_id = "httpRequest",
                               publisher_inputs = list(),
-                              client = NULL) {
+                              client = NULL,
+                              call = rlang::caller_env()) {
   if (missing(event_type) || is.null(event_type) || !nzchar(event_type)) {
-    cli::cli_abort("Argument {.arg event_type} is required.")
+    cli::cli_abort("Argument {.arg event_type} is required.", call = call)
   }
 
   if (!is.null(url) && nzchar(url)) {
@@ -285,7 +286,7 @@ az_webhook_create <- function(event_type,
     cli::cli_abort(c(
       "x" = "A destination URL is required for webhook creation.",
       "i" = "Provide {.arg url} or pass {.code url} in {.arg consumer_inputs}."
-    ))
+    ), call = call)
   }
 
   if (length(consumer_inputs) == 0) {

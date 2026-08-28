@@ -8,7 +8,8 @@ az_work_items_get(
   ids,
   expand = c("all", "relations", "fields", "none"),
   as_data_frame = FALSE,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

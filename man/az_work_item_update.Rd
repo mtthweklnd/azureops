@@ -4,7 +4,12 @@
 \alias{az_work_item_update}
 \title{Update a Work Item}
 \usage{
-az_work_item_update(id, fields = list(), client = NULL)
+az_work_item_update(
+  id,
+  fields = list(),
+  client = NULL,
+  call = rlang::caller_env()
+)
 }
 \arguments{
 \item{id}{Integer ID of the work item to update.}

@@ -3,13 +3,13 @@ NULL
 
 #' Parse Pipeline JSON into S7 az_pipeline
 #' @noRd
-.parse_pipeline <- function(item) {
+.parse_pipeline <- function(item, call = rlang::caller_env()) {
   pipeline_id <- purrr::pluck(item, "id")
   if (is.null(pipeline_id) || is.na(pipeline_id) || as.integer(pipeline_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pipeline definition has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   az_pipeline(
     id = as.integer(pipeline_id),
@@ -22,13 +22,13 @@ NULL
 
 #' Parse Pipeline Run JSON into S7 az_pipeline_run
 #' @noRd
-.parse_pipeline_run <- function(item) {
+.parse_pipeline_run <- function(item, call = rlang::caller_env()) {
   run_id <- purrr::pluck(item, "id")
   if (is.null(run_id) || is.na(run_id) || as.integer(run_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pipeline run has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   az_pipeline_run(
     id = as.integer(run_id),
@@ -83,11 +83,11 @@ az_pipelines_list <- function(project = NULL, client = NULL) {
 #' @param client Optional `az_client` S7 object.
 #' @return An S7 `az_pipeline` object.
 #' @export
-az_pipeline_get <- function(pipeline_id, project = NULL, client = NULL) {
+az_pipeline_get <- function(pipeline_id, project = NULL, client = NULL, call = rlang::caller_env()) {
   endpoint <- sprintf("_apis/pipelines/%s", pipeline_id)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
-  .parse_pipeline(res)
+  .parse_pipeline(res, call = call)
 }
 
 #' List Pipeline Runs
@@ -135,11 +135,11 @@ az_pipeline_runs_list <- function(pipeline_id = NULL, project = NULL, client = N
 #' @param client Optional `az_client` S7 object.
 #' @return An S7 `az_pipeline_run` object.
 #' @export
-az_pipeline_run_get <- function(pipeline_id, run_id, project = NULL, client = NULL) {
+az_pipeline_run_get <- function(pipeline_id, run_id, project = NULL, client = NULL, call = rlang::caller_env()) {
   endpoint <- sprintf("_apis/pipelines/%s/runs/%s", pipeline_id, run_id)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
-  .parse_pipeline_run(res)
+  .parse_pipeline_run(res, call = call)
 }
 
 #' Trigger an Automated Pipeline Run
@@ -169,7 +169,8 @@ az_pipeline_run_trigger <- function(pipeline_id,
                                     template_parameters = list(),
                                     variables = list(),
                                     project = NULL,
-                                    client = NULL) {
+                                    client = NULL,
+                                    call = rlang::caller_env()) {
   branch_ref <- if (!grepl("^refs/heads/", branch)) paste0("refs/heads/", branch) else branch
   
   body <- list(
@@ -199,7 +200,7 @@ az_pipeline_run_trigger <- function(pipeline_id,
     httr2::req_body_json(body)
     
   res <- az_perform(req)
-  .parse_pipeline_run(res)
+  .parse_pipeline_run(res, call = call)
 }
 
 #' List Execution Logs for a Pipeline Run
@@ -250,9 +251,9 @@ az_pipeline_run_log_get <- function(pipeline_id, run_id, log_id, project = NULL,
 }
 
 # S7 method registration for az_logs on az_pipeline_run
-S7::method(az_logs, az_pipeline_run) <- function(x, client = NULL, ...) {
+S7::method(az_logs, az_pipeline_run) <- function(x, client = NULL, ..., call = rlang::caller_env()) {
   if (x@pipeline_id == 0L) {
-    cli::cli_abort("Pipeline ID is not available on this run object.")
+    cli::cli_abort("Pipeline ID is not available on this run object.", call = call)
   }
   logs <- az_pipeline_run_logs_list(pipeline_id = x@pipeline_id, run_id = x@id, client = client)
   if (nrow(logs) == 0) {

@@ -31,9 +31,10 @@ az_client <- S7::new_class(
                          pat = NULL,
                          project = NULL,
                          base_url = "https://dev.azure.com",
-                         api_version = "7.0") {
-    org <- az_org(organization)
-    token <- az_pat(pat)
+                         api_version = "7.0",
+                         call = rlang::caller_env()) {
+    org <- az_org(organization, call = call)
+    token <- az_pat(pat, call = call)
     proj <- az_project(project)
     
     S7::new_object(

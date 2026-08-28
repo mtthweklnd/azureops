@@ -10,7 +10,7 @@
 #' \dontrun{
 #' az_pat()
 #' }
-az_pat <- function(pat = NULL) {
+az_pat <- function(pat = NULL, call = rlang::caller_env()) {
   if (!is.null(pat) && nzchar(pat)) {
     return(pat)
   }
@@ -19,7 +19,7 @@ az_pat <- function(pat = NULL) {
     cli::cli_abort(c(
       "x" = "Azure DevOps Personal Access Token (PAT) not found.",
       "i" = "Provide {.arg pat} or set the {.envvar AZURE_DEVOPS_PAT} environment variable in your {.file .Renviron}."
-    ))
+    ), call = call)
   }
   env_pat
 }
@@ -32,7 +32,7 @@ az_pat <- function(pat = NULL) {
 #' @param organization Optional organization string.
 #' @return An organization string.
 #' @export
-az_org <- function(organization = NULL) {
+az_org <- function(organization = NULL, call = rlang::caller_env()) {
   if (!is.null(organization) && nzchar(organization)) {
     return(organization)
   }
@@ -41,7 +41,7 @@ az_org <- function(organization = NULL) {
     cli::cli_abort(c(
       "x" = "Azure DevOps organization not found.",
       "i" = "Provide {.arg organization} or set the {.envvar AZURE_DEVOPS_ORG} environment variable."
-    ))
+    ), call = call)
   }
   env_org
 }

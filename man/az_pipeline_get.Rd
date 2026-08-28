@@ -4,7 +4,12 @@
 \alias{az_pipeline_get}
 \title{Get a Single Pipeline Definition}
 \usage{
-az_pipeline_get(pipeline_id, project = NULL, client = NULL)
+az_pipeline_get(
+  pipeline_id,
+  project = NULL,
+  client = NULL,
+  call = rlang::caller_env()
+)
 }
 \arguments{
 \item{pipeline_id}{Integer ID of the pipeline.}

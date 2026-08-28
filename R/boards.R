@@ -3,13 +3,13 @@ NULL
 
 #' Helper to Parse Azure DevOps Work Item JSON into S7 az_work_item
 #' @noRd
-.parse_work_item <- function(item) {
+.parse_work_item <- function(item, call = rlang::caller_env()) {
   item_id <- purrr::pluck(item, "id")
   if (is.null(item_id) || is.na(item_id) || as.integer(item_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: work item has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   fields <- purrr::pluck(item, "fields", .default = list())
   
@@ -102,12 +102,12 @@ NULL
 
 #' Helper to Build WIQL Query for Feature Work Items
 #' @noRd
-.build_feature_work_items_wiql <- function(feature_id = NULL, state = "all") {
+.build_feature_work_items_wiql <- function(feature_id = NULL, state = "all", call = rlang::caller_env()) {
   if (is.null(feature_id) || is.na(feature_id) || as.integer(feature_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Invalid `feature_id`: must be a positive integer.",
       "i" = "Provide a positive integer Feature ID or search by `feature_title`."
-    ))
+    ), call = call)
   }
   
   where_clauses <- sprintf("[System.Parent] = %d", as.integer(feature_id))
@@ -133,14 +133,14 @@ NULL
 #' item <- az_work_item_get(1234)
 #' az_status(item)
 #' }
-az_work_item_get <- function(id, expand = c("all", "relations", "fields", "none"), client = NULL) {
-  expand <- rlang::arg_match(expand)
+az_work_item_get <- function(id, expand = c("all", "relations", "fields", "none"), client = NULL, call = rlang::caller_env()) {
+  expand <- rlang::arg_match(expand, error_call = call)
   endpoint <- sprintf("_apis/wit/workitems/%s", id)
   
   req <- az_request(endpoint, client = client, query = list(`$expand` = expand))
   res <- az_perform(req)
   
-  .parse_work_item(res)
+  .parse_work_item(res, call = call)
 }
 
 #' Get Multiple Work Items by ID
@@ -154,12 +154,13 @@ az_work_item_get <- function(id, expand = c("all", "relations", "fields", "none"
 az_work_items_get <- function(ids,
                               expand = c("all", "relations", "fields", "none"),
                               as_data_frame = FALSE,
-                              client = NULL) {
+                              client = NULL,
+                              call = rlang::caller_env()) {
   if (length(ids) == 0) {
     return(if (as_data_frame) tibble::tibble() else list())
   }
   
-  expand <- rlang::arg_match(expand)
+  expand <- rlang::arg_match(expand, error_call = call)
   endpoint <- "_apis/wit/workitems"
   
   req <- az_request(
@@ -176,7 +177,7 @@ az_work_items_get <- function(ids,
     on.exit(cli::cli_progress_done(), add = TRUE)
   }
   
-  parsed <- purrr::map(items, .parse_work_item)
+  parsed <- purrr::map(items, .parse_work_item, call = call)
   
   if (as_data_frame) {
     purrr::map_dfr(parsed, ~ S7::convert(.x, S7::class_data.frame))
@@ -202,7 +203,8 @@ az_work_item_create <- function(type,
                                 assigned_to = NULL,
                                 fields = list(),
                                 project = NULL,
-                                client = NULL) {
+                                client = NULL,
+                                call = rlang::caller_env()) {
   # Build JSON Patch operations
   patch <- list(
     list(op = "add", path = "/fields/System.Title", value = title)
@@ -228,7 +230,7 @@ az_work_item_create <- function(type,
     httr2::req_body_json(patch)
     
   res <- az_perform(req)
-  .parse_work_item(res)
+  .parse_work_item(res, call = call)
 }
 
 #' Update a Work Item
@@ -238,9 +240,9 @@ az_work_item_create <- function(type,
 #' @param client Optional `az_client` S7 object.
 #' @return Updated S7 `az_work_item` object.
 #' @export
-az_work_item_update <- function(id, fields = list(), client = NULL) {
+az_work_item_update <- function(id, fields = list(), client = NULL, call = rlang::caller_env()) {
   if (length(fields) == 0) {
-    cli::cli_abort("No fields provided for update.")
+    cli::cli_abort("No fields provided for update.", call = call)
   }
   
   patch <- purrr::imap(fields, function(val, name) {
@@ -255,7 +257,7 @@ az_work_item_update <- function(id, fields = list(), client = NULL) {
     httr2::req_body_json(patch)
     
   res <- az_perform(req)
-  .parse_work_item(res)
+  .parse_work_item(res, call = call)
 }
 
 #' Query Work Items using WIQL (Work Item Query Language)
@@ -395,7 +397,8 @@ az_feature_work_items <- function(feature_id = NULL,
                                   top = NULL,
                                   resolve = TRUE,
                                   as_data_frame = FALSE,
-                                  client = NULL) {
+                                  client = NULL,
+                                  call = rlang::caller_env()) {
   if (is.null(feature_id) && !is.null(feature_title) && nzchar(trimws(as.character(feature_title)))) {
     # Resolve feature_id by querying Feature work item by title
     escaped_title <- .escape_wiql_str(trimws(as.character(feature_title)))
@@ -415,7 +418,7 @@ az_feature_work_items <- function(feature_id = NULL,
       cli::cli_abort(c(
         "x" = sprintf("No Feature work item found matching title: '%s'.", feature_title),
         "i" = "Check the Feature title spelling or provide `feature_id` directly."
-      ))
+      ), call = call)
     }
     if (length(work_items_ref) > 1) {
       matched_id <- as.integer(purrr::pluck(work_items_ref[[1]], "id", .default = 0L))
@@ -430,12 +433,13 @@ az_feature_work_items <- function(feature_id = NULL,
     cli::cli_abort(c(
       "x" = "Must provide either a valid `feature_id` (positive integer) or `feature_title`.",
       "i" = "Specify `feature_id = <ID>` or `feature_title = '<Title>'`."
-    ))
+    ), call = call)
   }
   
   query <- .build_feature_work_items_wiql(
     feature_id = feature_id,
-    state = state
+    state = state,
+    call = call
   )
   
   az_wiql_query(

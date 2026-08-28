@@ -318,9 +318,9 @@ S7::method(az_status, az_test_run) <- function(x, ...) {
 # S7 Methods for az_browse
 # -------------------------------------------------------------------------
 
-.browse_helper <- function(url, browser = interactive()) {
+.browse_helper <- function(url, browser = interactive(), call = rlang::caller_env()) {
   if (!nzchar(url)) {
-    cli::cli_abort("No web URL available for this resource.")
+    cli::cli_abort("No web URL available for this resource.", call = call)
   }
   if (browser) {
     utils::browseURL(url)
@@ -332,44 +332,44 @@ S7::method(az_status, az_test_run) <- function(x, ...) {
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_work_item) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_work_item) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_repo) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_repo) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_pull_request) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_pull_request) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_pipeline) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_pipeline) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_pipeline_run) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_pipeline_run) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_test_plan) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_test_plan) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 #' @rdname az_browse
 #' @export
-S7::method(az_browse, az_test_run) <- function(x, browser = interactive(), ...) {
-  .browse_helper(x@web_url, browser)
+S7::method(az_browse, az_test_run) <- function(x, browser = interactive(), ..., call = rlang::caller_env()) {
+  .browse_helper(x@web_url, browser, call = call)
 }
 
 

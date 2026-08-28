@@ -8,7 +8,8 @@ az_pull_request_get(
   pull_request_id,
   repository_id = NULL,
   project = NULL,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

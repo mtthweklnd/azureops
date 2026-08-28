@@ -9,7 +9,8 @@ az_pull_requests_list(
   status = c("active", "abandoned", "completed", "all"),
   top = 50,
   project = NULL,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

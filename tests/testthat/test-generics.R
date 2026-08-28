@@ -23,9 +23,11 @@ test_that("az_browse returns URL when browser = FALSE", {
   repo <- az_repo(id = "r1", name = "my-repo", web_url = "https://dev.azure.com/myorg/proj/_git/my-repo")
   expect_equal(az_browse(repo, browser = FALSE), "https://dev.azure.com/myorg/proj/_git/my-repo")
   
-  # Error if empty URL
+  # Error if empty URL reports az_browse call context
   empty_repo <- az_repo(id = "r2", name = "empty")
-  expect_error(az_browse(empty_repo, browser = FALSE), "No web URL available")
+  cnd <- rlang::catch_cnd(az_browse(empty_repo, browser = FALSE))
+  expect_s3_class(cnd, "rlang_error")
+  expect_equal(rlang::call_name(cnd$call), "az_browse")
 })
 
 test_that("S7::convert to class_data.frame converts domain objects into tibbles", {

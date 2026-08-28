@@ -11,7 +11,8 @@ az_work_item_create(
   assigned_to = NULL,
   fields = list(),
   project = NULL,
-  client = NULL
+  client = NULL,
+  call = rlang::caller_env()
 )
 }
 \arguments{

@@ -3,13 +3,13 @@ NULL
 
 #' Parse Repository JSON into S7 az_repo
 #' @noRd
-.parse_repo <- function(item) {
+.parse_repo <- function(item, call = rlang::caller_env()) {
   repo_id <- purrr::pluck(item, "id")
   if (is.null(repo_id) || !nzchar(as.character(repo_id))) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: repository has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   az_repo(
     id = as.character(repo_id),
@@ -22,13 +22,13 @@ NULL
 
 #' Parse Pull Request JSON into S7 az_pull_request
 #' @noRd
-.parse_pull_request <- function(item) {
+.parse_pull_request <- function(item, call = rlang::caller_env()) {
   pr_id <- purrr::pluck(item, "pullRequestId")
   if (is.null(pr_id) || is.na(pr_id) || as.integer(pr_id) <= 0L) {
     cli::cli_abort(c(
       "x" = "Unexpected API response: pull request has no valid ID.",
       "i" = "The Azure DevOps API returned an unexpected response structure."
-    ))
+    ), call = call)
   }
   az_pull_request(
     id = as.integer(pr_id),
@@ -83,12 +83,12 @@ az_repos_list <- function(project = NULL, client = NULL) {
 #' @param client Optional `az_client` S7 object.
 #' @return An S7 `az_repo` object.
 #' @export
-az_repo_get <- function(repository_id, project = NULL, client = NULL) {
+az_repo_get <- function(repository_id, project = NULL, client = NULL, call = rlang::caller_env()) {
   repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
   endpoint <- sprintf("_apis/git/repositories/%s", repo_enc)
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
-  .parse_repo(res)
+  .parse_repo(res, call = call)
 }
 
 #' List Branches in a Repository
@@ -189,8 +189,9 @@ az_pull_requests_list <- function(repository_id = NULL,
                                   status = c("active", "abandoned", "completed", "all"),
                                   top = 50,
                                   project = NULL,
-                                  client = NULL) {
-  status <- rlang::arg_match(status)
+                                  client = NULL,
+                                  call = rlang::caller_env()) {
+  status <- rlang::arg_match(status, error_call = call)
   
   endpoint <- if (!is.null(repository_id) && nzchar(repository_id)) {
     repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
@@ -240,7 +241,8 @@ az_pull_requests_list <- function(repository_id = NULL,
 az_pull_request_get <- function(pull_request_id,
                                 repository_id = NULL,
                                 project = NULL,
-                                client = NULL) {
+                                client = NULL,
+                                call = rlang::caller_env()) {
   endpoint <- if (!is.null(repository_id) && nzchar(repository_id)) {
     repo_enc <- utils::URLencode(as.character(repository_id), reserved = TRUE)
     sprintf("_apis/git/repositories/%s/pullrequests/%s", repo_enc, pull_request_id)
@@ -250,7 +252,7 @@ az_pull_request_get <- function(pull_request_id,
   
   req <- az_request(endpoint, client = client, project = project)
   res <- az_perform(req)
-  .parse_pull_request(res)
+  .parse_pull_request(res, call = call)
 }
 
 #' Create a Pull Request
@@ -272,7 +274,8 @@ az_pull_request_create <- function(repository_id,
                                    description = "",
                                    is_draft = FALSE,
                                    project = NULL,
-                                   client = NULL) {
+                                   client = NULL,
+                                   call = rlang::caller_env()) {
   source_ref <- if (!grepl("^refs/heads/", source_branch)) paste0("refs/heads/", source_branch) else source_branch
   target_ref <- if (!grepl("^refs/heads/", target_branch)) paste0("refs/heads/", target_branch) else target_branch
   
@@ -292,7 +295,7 @@ az_pull_request_create <- function(repository_id,
     httr2::req_body_json(body)
     
   res <- az_perform(req)
-  .parse_pull_request(res)
+  .parse_pull_request(res, call = call)
 }
 
 #' List Pull Request Reviewers

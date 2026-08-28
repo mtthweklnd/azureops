@@ -4,7 +4,12 @@
 \alias{az_test_run_metrics_get}
 \title{Get Test Run Metrics & Summary}
 \usage{
-az_test_run_metrics_get(run_id, project = NULL, client = NULL)
+az_test_run_metrics_get(
+  run_id,
+  project = NULL,
+  client = NULL,
+  call = rlang::caller_env()
+)
 }
 \arguments{
 \item{run_id}{Integer ID of the test run.}

@@ -14,25 +14,25 @@
 az_browse(x, browser = interactive(), ...)
 
 ## S7 method for class <azureops::az_work_item>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_repo>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_pull_request>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_pipeline>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_pipeline_run>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_test_plan>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 
 ## S7 method for class <azureops::az_test_run>
-az_browse(x, browser = interactive(), ...)
+az_browse(x, browser = interactive(), ..., call = rlang::caller_env())
 }
 \arguments{
 \item{x}{An Azure DevOps S7 object with a web URL.}
