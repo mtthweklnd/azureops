@@ -1,10 +1,4 @@
 #' @include classes.R client.R generics.R
-#' @importFrom purrr pluck map map_int map_chr map_dbl map_dfr imap
-#' @importFrom rlang arg_match
-#' @importFrom tibble tibble
-#' @importFrom cli cli_abort
-#' @importFrom httr2 req_method req_headers req_body_json
-#' @importFrom S7 convert class_data.frame
 NULL
 
 #' Helper to Parse Azure DevOps Work Item JSON into S7 az_work_item
@@ -83,6 +77,11 @@ az_work_items_get <- function(ids,
   res <- az_perform(req)
   
   items <- purrr::pluck(res, "value", .default = list())
+  
+  if (length(items) > 1) {
+    cli::cli_progress_step("Parsing {length(items)} work item{?s}", spinner = TRUE)
+  }
+  
   parsed <- purrr::map(items, .parse_work_item)
   
   if (as_data_frame) {

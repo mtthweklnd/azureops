@@ -1,5 +1,4 @@
 #' @include auth.R
-#' @import S7
 NULL
 
 #' Azure DevOps Client Class

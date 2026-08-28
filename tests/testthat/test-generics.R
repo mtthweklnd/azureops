@@ -50,3 +50,38 @@ test_that("S7::convert to class_data.frame converts domain objects into tibbles"
   expect_s3_class(df_run, "tbl_df")
   expect_equal(df_run$result, "succeeded")
 })
+
+test_that("S7 print and format methods work with cli formatting for all domain objects", {
+  client <- az_client("org", "pat123", project = "proj")
+  expect_output(print(client), "Azure DevOps Client")
+  expect_true(any(grepl("Organization", format(client))))
+
+  item <- az_work_item(id = 42L, title = "Bug fix", type = "Bug")
+  expect_output(print(item), "Work Item #42")
+  expect_true(any(grepl("Title", format(item))))
+
+  repo <- az_repo(id = "r1", name = "my-repo")
+  expect_output(print(repo), "Repository \\[my-repo\\]")
+  expect_true(any(grepl("Default Branch", format(repo))))
+
+  pr <- az_pull_request(id = 12L, title = "Feature PR", status = "active")
+  expect_output(print(pr), "Pull Request #12")
+  expect_true(any(grepl("Status", format(pr))))
+
+  pipe <- az_pipeline(id = 5L, name = "CI Build")
+  expect_output(print(pipe), "Pipeline #5")
+  expect_true(any(grepl("Revision", format(pipe))))
+
+  run <- az_pipeline_run(id = 88L, pipeline_id = 5L, name = "CI Run")
+  expect_output(print(run), "Pipeline Run #88")
+  expect_true(any(grepl("Pipeline ID", format(run))))
+
+  tp <- az_test_plan(id = 3L, name = "Test Plan A")
+  expect_output(print(tp), "Test Plan #3")
+  expect_true(any(grepl("State", format(tp))))
+
+  tr <- az_test_run(id = 15L, name = "Run 15", pass_rate = 0.95)
+  expect_output(print(tr), "Test Run #15")
+  expect_true(any(grepl("Pass Rate", format(tr))))
+})
+

@@ -65,7 +65,10 @@ importFrom(S7,
 )
 importFrom(cli,
   cli_abort,
-  cli_inform
+  cli_dl,
+  cli_h3,
+  cli_inform,
+  cli_progress_step
 )
 importFrom(httr2,
   req_auth_basic,

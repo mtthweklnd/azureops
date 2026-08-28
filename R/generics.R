@@ -1,7 +1,4 @@
 #' @include classes.R
-#' @import S7
-#' @importFrom S7 convert class_data.frame method method<-
-#' @importFrom utils browseURL
 NULL
 
 # -------------------------------------------------------------------------
@@ -57,23 +54,158 @@ az_cancel <- S7::new_generic("az_cancel", "x", function(x, client = NULL, ...) S
 # S7 Methods for base generics (format / print)
 # -------------------------------------------------------------------------
 
+# az_client
 S7::method(format, az_client) <- function(x, ...) {
   masked_pat <- if (nzchar(x@pat)) {
     paste0(substr(x@pat, 1, min(3, nchar(x@pat))), paste0(rep("*", max(4, nchar(x@pat) - 3)), collapse = ""))
   } else {
     "<none>"
   }
-  c(
-    "<Azure DevOps Client [S7]>",
-    paste0("  Organization: ", x@organization),
-    paste0("  Project:      ", if (nzchar(x@project)) x@project else "<none>"),
-    paste0("  Base URL:     ", x@base_url),
-    paste0("  API Version:  ", x@api_version),
-    paste0("  PAT:          ", masked_pat)
-  )
+  cli::cli_format_method({
+    cli::cli_h3("<Azure DevOps Client [S7]>")
+    cli::cli_dl(c(
+      "Organization" = x@organization,
+      "Project"      = if (nzchar(x@project)) x@project else "<none>",
+      "Base URL"     = x@base_url,
+      "API Version"  = x@api_version,
+      "PAT"          = masked_pat
+    ))
+  })
 }
 
 S7::method(print, az_client) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_work_item
+S7::method(format, az_work_item) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Work Item #%d [%s]>", x@id, x@type))
+    cli::cli_dl(c(
+      "Title"       = x@title,
+      "State"       = x@state,
+      "Assigned To" = if (nzchar(x@assigned_to)) x@assigned_to else "<unassigned>",
+      "Revision"    = as.character(x@rev),
+      "Web URL"     = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_work_item) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_repo
+S7::method(format, az_repo) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Repository [%s]>", x@name))
+    cli::cli_dl(c(
+      "ID"             = x@id,
+      "Default Branch" = x@default_branch,
+      "Project"        = if (nzchar(x@project)) x@project else "<none>",
+      "Web URL"        = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_repo) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_pull_request
+S7::method(format, az_pull_request) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Pull Request #%d>", x@id))
+    cli::cli_dl(c(
+      "Title"         = x@title,
+      "Status"        = x@status,
+      "Source Branch" = x@source_branch,
+      "Target Branch" = x@target_branch,
+      "Created By"    = if (nzchar(x@created_by)) x@created_by else "<unknown>",
+      "Repository"    = if (nzchar(x@repository)) x@repository else "<none>",
+      "Web URL"       = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_pull_request) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_pipeline
+S7::method(format, az_pipeline) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Pipeline #%d [%s]>", x@id, x@name))
+    cli::cli_dl(c(
+      "Folder"   = x@folder,
+      "Revision" = as.character(x@revision),
+      "Web URL"  = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_pipeline) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_pipeline_run
+S7::method(format, az_pipeline_run) <- function(x, ...) {
+  res <- if (nzchar(x@result)) paste0(" (", x@result, ")") else ""
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Pipeline Run #%d>", x@id))
+    cli::cli_dl(c(
+      "Pipeline ID"  = as.character(x@pipeline_id),
+      "Name"         = x@name,
+      "Status"       = paste0(x@status, res),
+      "Created Date" = if (nzchar(x@created_date)) x@created_date else "<unknown>",
+      "Web URL"      = if (nzchar(x@web_url)) x@web_url else "<none>",
+      "Logs URL"     = if (nzchar(x@logs_url)) x@logs_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_pipeline_run) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_test_plan
+S7::method(format, az_test_plan) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Test Plan #%d [%s]>", x@id, x@name))
+    cli::cli_dl(c(
+      "State"     = x@state,
+      "Area Path" = if (nzchar(x@area_path)) x@area_path else "<none>",
+      "Iteration" = if (nzchar(x@iteration)) x@iteration else "<none>",
+      "Web URL"   = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_test_plan) <- function(x, ...) {
+  cat(format(x, ...), sep = "\n")
+  invisible(x)
+}
+
+# az_test_run
+S7::method(format, az_test_run) <- function(x, ...) {
+  cli::cli_format_method({
+    cli::cli_h3(sprintf("<Azure DevOps Test Run #%d [%s]>", x@id, x@name))
+    cli::cli_dl(c(
+      "State"       = x@state,
+      "Total Tests" = as.character(x@total_tests),
+      "Pass Rate"   = sprintf("%.1f%%", x@pass_rate * 100),
+      "Web URL"     = if (nzchar(x@web_url)) x@web_url else "<none>"
+    ))
+  })
+}
+
+S7::method(print, az_test_run) <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)
 }
@@ -85,22 +217,30 @@ S7::method(print, az_client) <- function(x, ...) {
 
 S7::method(az_status, az_pipeline_run) <- function(x, ...) {
   res <- if (nzchar(x@result)) paste0(" (", x@result, ")") else ""
-  cli::cli_inform(c("i" = "Pipeline Run #{x@id} ({x@name}): {.strong {x@status}}{res}"))
+  bullet <- if (identical(x@result, "succeeded") || identical(x@status, "completed")) "v" else if (identical(x@result, "failed")) "x" else "i"
+  msg <- setNames("Pipeline Run #{x@id} ({x@name}): {.strong {x@status}}{res}", bullet)
+  cli::cli_inform(msg)
   x@status
 }
 
 S7::method(az_status, az_pull_request) <- function(x, ...) {
-  cli::cli_inform(c("i" = "Pull Request #{x@id} \"{x@title}\": {.strong {x@status}}"))
+  bullet <- if (identical(x@status, "completed")) "v" else if (identical(x@status, "abandoned")) "x" else "i"
+  msg <- setNames("Pull Request #{x@id} \"{x@title}\": {.strong {x@status}}", bullet)
+  cli::cli_inform(msg)
   x@status
 }
 
 S7::method(az_status, az_work_item) <- function(x, ...) {
-  cli::cli_inform(c("i" = "Work Item #{x@id} [{x@type}] \"{x@title}\": {.strong {x@state}}"))
+  bullet <- if (tolower(x@state) %in% c("closed", "done", "resolved")) "v" else "i"
+  msg <- setNames("Work Item #{x@id} [{x@type}] \"{x@title}\": {.strong {x@state}}", bullet)
+  cli::cli_inform(msg)
   x@state
 }
 
 S7::method(az_status, az_test_run) <- function(x, ...) {
-  cli::cli_inform(c("i" = "Test Run #{x@id} ({x@name}): {.strong {x@state}} - Pass Rate: {round(x@pass_rate * 100, 1)}%"))
+  bullet <- if (tolower(x@state) == "completed" && x@pass_rate >= 0.9) "v" else if (x@pass_rate < 0.5) "x" else "i"
+  msg <- setNames("Test Run #{x@id} ({x@name}): {.strong {x@state}} - Pass Rate: {round(x@pass_rate * 100, 1)}%", bullet)
+  cli::cli_inform(msg)
   x@state
 }
 

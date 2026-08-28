@@ -1,11 +1,4 @@
 #' @include classes.R auth.R
-#' @importFrom httr2 request req_auth_basic req_user_agent req_error req_url_query req_perform req_method req_headers req_body_json resp_status resp_body_string resp_content_type resp_has_body
-#' @importFrom jsonlite fromJSON
-#' @importFrom purrr pluck
-#' @importFrom rlang %||%
-#' @importFrom cli cli_abort
-#' @importFrom S7 S7_inherits
-#' @importFrom utils URLencode
 NULL
 
 #' Resolve Client Object or Credentials

@@ -12,15 +12,14 @@
 # ==============================================================================
 
 library(azureops)
+library(cli)
 
-cat("=================================================================\n")
-cat("                AzureOps Package Demonstration                   \n")
-cat("=================================================================\n\n")
+cli::cli_h1("AzureOps Package Demonstration")
 
 # ------------------------------------------------------------------------------
 # 1. S7 Client Configuration
 # ------------------------------------------------------------------------------
-cat("--- 1. S7 Client Initialization ---\n")
+cli::cli_h2("1. S7 Client Initialization")
 # Client constructor accepts organization, PAT, and optional project scope
 client <- az_client(
   organization = "myorg",
@@ -28,22 +27,21 @@ client <- az_client(
   project = "Platform Engineering (Core)"    # Names with spaces & parentheses are safely encoded
 )
 print(client)
-cat("\n")
 
 # ------------------------------------------------------------------------------
 # 2. Inspecting Request Building & URL Encoding
 # ------------------------------------------------------------------------------
-cat("--- 2. Request Building & Project Scoping (httr2) ---\n")
+cli::cli_h2("2. Request Building & Project Scoping (httr2)")
 req_org <- az_request("_apis/projects", client = client)
-cat("Org-level URL (unprefixed):", req_org$url, "\n")
+cli::cli_alert_info("Org-level URL (unprefixed): {.url {req_org$url}}")
 
 req_proj <- az_request("_apis/pipelines", client = client)
-cat("Project-scoped URL (encoded):", req_proj$url, "\n\n")
+cli::cli_alert_info("Project-scoped URL (encoded): {.url {req_proj$url}}")
 
 # ------------------------------------------------------------------------------
 # 3. Domain Classes & Generics (S7)
 # ------------------------------------------------------------------------------
-cat("--- 3. S7 Domain Classes & Generics ---\n")
+cli::cli_h2("3. S7 Domain Classes & Generics")
 
 # Work Item Example
 item <- az_work_item(
@@ -55,13 +53,12 @@ item <- az_work_item(
   assigned_to = "Alice Dev <alice@example.com>",
   web_url = "https://dev.azure.com/myorg/Platform/_workitems/edit/1042"
 )
-cat("Work Item S7 Object:\n")
+cli::cli_alert_info("Work Item S7 Object:")
 print(item)
-cat("Generic az_status():", az_status(item), "\n")
-cat("Generic az_browse():", az_browse(item, browser = FALSE), "\n")
-cat("Convert to Tibble:\n")
+cli::cli_inform(c("i" = "Generic az_status(): {.strong {az_status(item)}}"))
+cli::cli_inform(c("i" = "Generic az_browse(): {.url {az_browse(item, browser = FALSE)}}"))
+cli::cli_alert_info("Convert to Tibble:")
 print(S7::convert(item, S7::class_data.frame))
-cat("\n")
 
 # Pipeline Run Example
 run <- az_pipeline_run(
@@ -74,10 +71,10 @@ run <- az_pipeline_run(
   web_url = "https://dev.azure.com/myorg/Platform/_build/results?buildId=9912",
   logs_url = "https://dev.azure.com/myorg/Platform/_apis/pipelines/45/runs/9912/logs"
 )
-cat("Pipeline Run S7 Object:\n")
+cli::cli_alert_info("Pipeline Run S7 Object:")
 print(run)
-cat("Generic az_status():", az_status(run), "\n")
-cat("Run Result Property:", run@result, "\n\n")
+cli::cli_inform(c("i" = "Generic az_status(): {.strong {az_status(run)}}"))
+cli::cli_inform(c("i" = "Run Result Property: {.val {run@result}}"))
 
 # Test Run Example
 test_run <- az_test_run(
@@ -88,22 +85,20 @@ test_run <- az_test_run(
   pass_rate = 0.975,
   web_url = "https://dev.azure.com/myorg/Platform/_TestManagement/Runs#runId=501"
 )
-cat("Test Run S7 Object:\n")
+cli::cli_alert_info("Test Run S7 Object:")
 print(test_run)
-cat("Pass Rate:", sprintf("%.1f%%", test_run@pass_rate * 100), "\n\n")
+cli::cli_inform(c("i" = "Pass Rate: {.val {sprintf('%.1f%%', test_run@pass_rate * 100)}}"))
 
 # ------------------------------------------------------------------------------
 # 4. Webhook Creation Validation
 # ------------------------------------------------------------------------------
-cat("--- 4. Webhook Input Validation (Fails Loudly on Missing Destination) ---\n")
+cli::cli_h2("4. Webhook Input Validation (Fails Loudly on Missing Destination)")
 tryCatch({
   az_webhook_create("workitem.created", client = client)
 }, error = function(e) {
-  cat("Validation check caught missing destination URL cleanly:\n")
-  cat("Error message:", conditionMessage(e), "\n")
+  cli::cli_alert_success("Validation check caught missing destination URL cleanly:")
+  cli::cli_alert_danger("Error message: {conditionMessage(e)}")
 })
-cat("\n")
 
-cat("=================================================================\n")
-cat("Demo complete! All classes, generics, and URL builders operational.\n")
-cat("=================================================================\n")
+cli::cli_rule(left = "Demo complete")
+cli::cli_alert_success("All classes, generics, and URL builders operational.")

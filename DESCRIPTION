@@ -30,6 +30,7 @@ Collate:
     'generics.R'
     'client.R'
     'admin.R'
+    'azureops-package.R'
     'boards.R'
     'pipelines.R'
     'repos.R'
